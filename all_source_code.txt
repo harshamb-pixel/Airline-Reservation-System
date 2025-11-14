@@ -1,0 +1,6014 @@
+--- START FILE: includes\background.php ---
+
+<?php
+// This file contains the updated animated HTML element for the background.
+// It is included in header.php.
+?>
+
+<img src="images/airplane.png" alt="Animated Airplane" class="airplane">
+
+--- END FILE: includes\background.php ---
+
+
+--- START FILE: includes\background_elements.php ---
+
+<?php
+// This file contains the updated animated HTML element for the background.
+// It is included in header.php.
+?>
+
+<img src="images/airplane.png" alt="Animated Airplane" class="airplane">
+
+--- END FILE: includes\background_elements.php ---
+
+
+--- START FILE: admin_dashboard.php ---
+
+<?php
+include 'db.php';
+session_start();
+
+// 🔒 Restrict access to admin only
+if (!isset($_SESSION['email']) || $_SESSION['email'] !== 'admin@airline.com') {
+  echo "<script>alert('Access denied! Admins only.'); window.location='login.php';</script>";
+  exit();
+}
+?>
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>🛫 Airline Admin Dashboard</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<style>
+html, body {
+  height: 100%;
+  margin: 0;
+  font-family: 'Poppins', sans-serif;
+  background: linear-gradient(to bottom, #a1c4fd, #c2e9fb);
+  overflow-x: hidden;
+  position: relative;
+}
+
+/* ☁️ Clouds Animation */
+.cloud {
+  position: absolute;
+  opacity: 0.85;
+  animation: moveClouds linear infinite;
+  z-index: 0;
+}
+
+.cloud1 { top: 10%; left: -300px; width: 250px; animation-duration: 70s; }
+.cloud2 { top: 40%; left: -400px; width: 300px; animation-duration: 90s; animation-delay: 10s; }
+.cloud3 { top: 70%; left: -350px; width: 230px; animation-duration: 110s; animation-delay: 25s; }
+
+@keyframes moveClouds {
+  from { transform: translateX(0); }
+  to { transform: translateX(130vw); }
+}
+
+/* ✈️ Airplane Animation */
+.plane {
+  position: absolute;
+  width: 2000px;
+  top: 0%;
+  left: -400px;
+  opacity: 0.8;
+  animation: flyPlane 60s ease-in-out infinite;
+  z-index: 1;
+}
+
+@keyframes flyPlane {
+  0% { transform: translate(0, 0) rotate(4deg); }
+  50% { transform: translate(120vw, -8vh) rotate(-4deg); }
+  100% { transform: translate(-100px, 4vh) rotate(4deg); }
+}
+
+/* 💎 Admin Panel Glass UI */
+.admin-panel {
+  position: relative;
+  z-index: 5;
+  background: rgba(255, 255, 255, 0.2);
+  backdrop-filter: blur(14px);
+  border-radius: 20px;
+  padding: 30px;
+  width: 95%;
+  max-width: 1200px;
+  margin: 100px auto;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.25);
+}
+
+h1 {
+  color: #0d47a1;
+  font-weight: 700;
+  text-align: center;
+}
+
+.nav-tabs .nav-link.active {
+  background-color: #0d47a1;
+  color: #fff;
+  border-radius: 10px;
+}
+
+.table {
+  background: rgba(255,255,255,0.95);
+  border-radius: 10px;
+}
+</style>
+</head>
+
+<body>
+  <!-- ☁️ Animated Background -->
+  <img src="images/cloud.png" class="cloud cloud1">
+  <img src="images/cloud.png" class="cloud cloud2">
+  <img src="images/cloud.png" class="cloud cloud3">
+  <img src="images/airplane.png" class="plane">
+
+  <!-- 💎 Admin Glass Panel -->
+  <div class="admin-panel">
+    <h1>🛫 Airline Admin Dashboard</h1>
+
+    <ul class="nav nav-tabs mt-4" id="adminTabs" role="tablist">
+      <li class="nav-item"><a class="nav-link active" data-bs-toggle="tab" href="#flights">✈️ Flights</a></li>
+      <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#reservations">🧾 Reservations</a></li>
+      <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#payments">💳 Payments</a></li>
+      <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#fares">💹 Dynamic Fares</a></li>
+      <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#query">🧠 Run Query</a></li>
+    </ul>
+
+    <div class="tab-content mt-3">
+      <!-- Flights -->
+      <div class="tab-pane fade show active" id="flights">
+        <h4>✈️ Flight Details</h4>
+        <table class="table table-bordered table-sm">
+          <thead><tr><th>Flight Number</th><th>Airline</th><th>Departure</th><th>Arrival</th></tr></thead>
+          <tbody>
+          <?php
+          $res = $conn->query("SELECT * FROM flight LIMIT 10");
+          if ($res->num_rows > 0) {
+            while ($r = $res->fetch_assoc()) {
+              echo "<tr>
+                      <td>{$r['Flight_number']}</td>
+                      <td>{$r['Airline']}</td>
+                      <td>{$r['Departure_airport']}</td>
+                      <td>{$r['Arrival_airport']}</td>
+                    </tr>";
+            }
+          } else echo "<tr><td colspan='4'>No flights found</td></tr>";
+          ?>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Reservations -->
+      <div class="tab-pane fade" id="reservations">
+        <h4>🧾 Reservations</h4>
+        <table class="table table-bordered table-sm">
+          <thead><tr><th>Email</th><th>Flight</th><th>Date</th><th>Seat</th></tr></thead>
+          <tbody>
+          <?php
+          $res = $conn->query("SELECT Email, Flight_number, Date, Seat_no FROM reservation ORDER BY Date DESC LIMIT 10");
+          if ($res->num_rows > 0) {
+            while ($r = $res->fetch_assoc()) {
+              echo "<tr>
+                      <td>{$r['Email']}</td>
+                      <td>{$r['Flight_number']}</td>
+                      <td>{$r['Date']}</td>
+                      <td>{$r['Seat_no']}</td>
+                    </tr>";
+            }
+          } else echo "<tr><td colspan='4'>No reservations yet</td></tr>";
+          ?>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Payments -->
+      <div class="tab-pane fade" id="payments">
+        <h4>💳 Payment Transactions</h4>
+        <table class="table table-bordered table-sm">
+          <thead><tr><th>Email</th><th>Flight</th><th>Amount</th><th>Status</th></tr></thead>
+          <tbody>
+          <?php
+          $res = $conn->query("SELECT * FROM payments ORDER BY id DESC LIMIT 10");
+          if ($res->num_rows > 0) {
+            while ($r = $res->fetch_assoc()) {
+              echo "<tr>
+                      <td>{$r['email']}</td>
+                      <td>{$r['flight_number']}</td>
+                      <td>₹{$r['amount']}</td>
+                      <td>{$r['status']}</td>
+                    </tr>";
+            }
+          } else echo "<tr><td colspan='4'>No payments yet</td></tr>";
+          ?>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Dynamic Fares -->
+      <div class="tab-pane fade" id="fares">
+        <h4>💹 Dynamic Fares</h4>
+        <table class="table table-bordered table-sm">
+          <thead><tr><th>Flight</th><th>Date</th><th>Class</th><th>Base</th><th>Factor</th><th>Final</th></tr></thead>
+          <tbody>
+          <?php
+          $res = $conn->query("SELECT df.flight_number, df.travel_date, sc.class_name, df.base_fare, df.demand_factor, df.final_fare
+                               FROM dynamic_fare df JOIN seat_class sc ON df.seat_class = sc.class_id
+                               ORDER BY df.travel_date DESC LIMIT 10");
+          if ($res->num_rows > 0) {
+            while ($r = $res->fetch_assoc()) {
+              echo "<tr>
+                      <td>{$r['flight_number']}</td>
+                      <td>{$r['travel_date']}</td>
+                      <td>{$r['class_name']}</td>
+                      <td>₹{$r['base_fare']}</td>
+                      <td>x{$r['demand_factor']}</td>
+                      <td><b>₹{$r['final_fare']}</b></td>
+                    </tr>";
+            }
+          } else echo "<tr><td colspan='6'>No dynamic fares found</td></tr>";
+          ?>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Custom SQL Query -->
+      <div class="tab-pane fade" id="query">
+        <h4>🧠 Execute SQL Query</h4>
+        <form method="POST" class="mb-3">
+          <textarea name="custom_query" class="form-control" rows="4" placeholder="SELECT * FROM users LIMIT 5;" required></textarea>
+          <button type="submit" name="run_query" class="btn btn-primary mt-2">Run Query</button>
+        </form>
+        <?php
+        if (isset($_POST['run_query'])) {
+          $q = trim($_POST['custom_query']);
+          if (preg_match('/^\s*SELECT/i', $q)) {
+            $result = $conn->query($q);
+            if ($result && $result->num_rows > 0) {
+              echo "<div class='table-responsive'><table class='table table-bordered table-sm'><thead><tr>";
+              while ($field = $result->fetch_field()) echo "<th>{$field->name}</th>";
+              echo "</tr></thead><tbody>";
+              while ($row = $result->fetch_assoc()) {
+                echo "<tr>";
+                foreach ($row as $val) echo "<td>" . htmlspecialchars($val) . "</td>";
+                echo "</tr>";
+              }
+              echo "</tbody></table></div>";
+            } else echo "<div class='alert alert-warning'>No results found or invalid query.</div>";
+          } else {
+            echo "<div class='alert alert-danger'>Only SELECT queries are allowed.</div>";
+          }
+        }
+        ?>
+      </div>
+    </div>
+  </div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
+
+
+--- END FILE: admin_dashboard.php ---
+
+
+--- START FILE: ai_assistant_api.php ---
+
+<?php
+header('Content-Type: application/json; charset=UTF-8');
+ini_set('display_errors', 0);
+error_reporting(E_ALL);
+
+include 'db.php';
+if (session_status() === PHP_SESSION_NONE) session_start();
+
+function sendJson($reply) {
+    echo json_encode(['reply' => $reply]);
+    exit;
+}
+
+// Catch errors
+set_error_handler(function($severity, $message) {
+    sendJson("⚠️ PHP Error: $message");
+});
+register_shutdown_function(function() {
+    $error = error_get_last();
+    if ($error) sendJson("⚠️ Fatal Error: {$error['message']}");
+});
+
+// Input
+$data = json_decode(file_get_contents("php://input"), true);
+$prompt = strtolower(trim($data['prompt'] ?? ''));
+$email = $_SESSION['email'] ?? '';
+if (!$prompt) sendJson("❌ No prompt provided.");
+
+// -------------------
+// Greetings
+// -------------------
+if (strpos($prompt, 'hello') !== false || strpos($prompt, 'hi') !== false) {
+    sendJson("👋 Hello! How can I assist you with your flights or reservations?");
+}
+
+// -------------------
+// Reservation Count
+// -------------------
+if (strpos($prompt, 'my bookings') !== false || strpos($prompt, 'how many reservations') !== false) {
+    if (!$email) sendJson("❌ Please log in to see your reservations.");
+    $stmt = $conn->prepare("SELECT COUNT(*) AS total FROM Reservation WHERE Email = ?");
+    $stmt->bind_param("s", $email);
+    $stmt->execute();
+    $row = $stmt->get_result()->fetch_assoc();
+    $count = (int)($row['total'] ?? 0);
+    sendJson("📊 You have $count active reservation(s).");
+}
+
+// -------------------
+// Reservation List
+// -------------------
+if (strpos($prompt, 'show my flights') !== false || strpos($prompt, 'my reservation') !== false) {
+    if (!$email) sendJson("❌ Please log in to view your reservations.");
+    $stmt = $conn->prepare("SELECT Flight_number, Leg_no, Date, Seat_no FROM Reservation WHERE Email = ?");
+    $stmt->bind_param("s", $email);
+    $stmt->execute();
+    $result = $stmt->get_result();
+
+    if ($result->num_rows === 0) sendJson("📭 You currently have no reservations.");
+
+    // Format as HTML table
+    $html = "<table class='table table-bordered table-sm'><thead><tr>";
+    while ($field = $result->fetch_field()) {
+        $html .= "<th>" . htmlspecialchars($field->name) . "</th>";
+    }
+    $html .= "</tr></thead><tbody>";
+
+    // Reset pointer
+    $result->data_seek(0);
+    while ($row = $result->fetch_assoc()) {
+        $html .= "<tr>";
+        foreach ($row as $val) $html .= "<td>" . htmlspecialchars($val) . "</td>";
+        $html .= "</tr>";
+    }
+    $html .= "</tbody></table>";
+
+    sendJson($html);
+}
+
+// -------------------
+// SQL Query Execution (SELECT only)
+// -------------------
+if (strpos($prompt, 'sql') !== false || strpos($prompt, 'query') !== false) {
+    preg_match('/SELECT .*/i', $prompt, $matches);
+    if (!isset($matches[0])) sendJson("❌ Please provide a valid SELECT query.");
+
+    $query = $matches[0];
+    if (!preg_match('/^\s*SELECT/i', $query)) sendJson("❌ Only SELECT queries are allowed.");
+
+    $result = $conn->query($query);
+    if (!$result) sendJson("❌ SQL Error: " . $conn->error);
+    if ($result->num_rows === 0) sendJson("✅ Query executed successfully, but no rows found.");
+
+    // Format as HTML table
+    $html = "<table class='table table-bordered table-striped table-sm'><thead><tr>";
+    while ($field = $result->fetch_field()) $html .= "<th>" . htmlspecialchars($field->name) . "</th>";
+    $html .= "</tr></thead><tbody>";
+
+    $result->data_seek(0);
+    while ($row = $result->fetch_assoc()) {
+        $html .= "<tr>";
+        foreach ($row as $val) $html .= "<td>" . htmlspecialchars($val) . "</td>";
+        $html .= "</tr>";
+    }
+    $html .= "</tbody></table>";
+
+    sendJson($html);
+}
+
+// -------------------
+// Fallback
+// -------------------
+sendJson("🤖 Sorry, I didn't understand your request. You can ask about reservations, bookings, or SQL queries.");
+
+
+--- END FILE: ai_assistant_api.php ---
+
+
+--- START FILE: ai_chat.php ---
+
+<?php
+session_start();
+if (!isset($_SESSION['username']) || !isset($_SESSION['email'])) {
+    header("Location: login.php");
+    exit();
+}
+$username = $_SESSION['username'];
+?>
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>AI Assistant - Airline Reservation System</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <style>
+        .chat-container {
+            max-width: 700px;
+            margin: 30px auto;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            height: 70vh;
+        }
+        .chat-history {
+            flex-grow: 1;
+            padding: 15px;
+            overflow-y: auto;
+            background-color: #f8f9fa;
+        }
+        .chat-input {
+            padding: 10px 15px;
+            border-top: 1px solid #ddd;
+            background-color: #fff;
+        }
+        .message {
+            margin-bottom: 10px;
+            padding: 8px 12px;
+            border-radius: 15px;
+            max-width: 80%;
+        }
+        .user-message {
+            background-color: #007bff;
+            color: white;
+            margin-left: auto;
+            text-align: right;
+        }
+        .assistant-message {
+            background-color: #e9ecef;
+            color: #343a40;
+            margin-right: auto;
+            text-align: left;
+        }
+    </style>
+</head>
+<body>
+<div class="chat-container shadow">
+    <div class="p-3 bg-primary text-white text-center">
+        <h5>🤖 Airline Assistant</h5>
+    </div>
+
+    <!-- Chat history -->
+    <div class="chat-history" id="chatHistory">
+        <div class="message assistant-message">
+            Hello, <?php echo htmlspecialchars($username); ?>! Ask about flights or reservations.
+        </div>
+    </div>
+
+    <!-- Predefined query dropdown -->
+    <div class="p-2 border-bottom bg-light">
+        <label for="predefinedQuery"><strong>Run a predefined query:</strong></label>
+        <select id="predefinedQuery" class="form-control">
+            <option value="">-- Select Query --</option>
+            <option value="SELECT * FROM flight;">All Flights</option>
+            <option value="SELECT * FROM reservation;">All Reservations</option>
+            <option value="SELECT Email, COUNT(*) AS Total_Reservations FROM reservation GROUP BY Email;">Reservation Count per Customer</option>
+            <option value="SELECT f.Flight_number, fl.Departure_airport_code, fl.Arrival_airport_code FROM flight f JOIN flight_leg fl ON f.Flight_number = fl.Flight_number;">Flight + Legs</option>
+            <option value="SELECT a.Airplane_id, a.Type_name, t.Company FROM airplane a JOIN airplane_type t ON a.Type_name = t.Type_name;">Airplanes with Type & Company</option>
+        </select>
+        <button class="btn btn-success btn-block mt-2" onclick="runPredefinedQuery()">Run Query</button>
+    </div>
+
+    <!-- User input -->
+    <div class="chat-input">
+        <div class="input-group">
+            <input type="text" id="userInput" class="form-control" placeholder="Type your message..." onkeypress="if(event.key==='Enter') sendMessage()">
+            <div class="input-group-append">
+                <button class="btn btn-primary" type="button" onclick="sendMessage()">Send</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+const chatHistoryDiv = document.getElementById('chatHistory');
+const userInput = document.getElementById('userInput');
+const predefinedQuery = document.getElementById('predefinedQuery');
+
+function appendMessage(sender, message, isHTML=false) {
+    const messageDiv = document.createElement('div');
+    messageDiv.classList.add('message', sender==='user'?'user-message':'assistant-message');
+    if (isHTML) messageDiv.innerHTML = message;
+    else messageDiv.textContent = message;
+    chatHistoryDiv.appendChild(messageDiv);
+    chatHistoryDiv.scrollTop = chatHistoryDiv.scrollHeight;
+}
+
+// Send free-text message
+async function sendMessage() {
+    const message = userInput.value.trim();
+    if (!message) return;
+    appendMessage('user', message);
+    userInput.value = '';
+    appendMessage('assistant', '...');
+
+    try {
+        const res = await fetch('ai_assistant_api.php', {
+            method: 'POST',
+            headers: {'Content-Type':'application/json'},
+            credentials: 'include',
+            body: JSON.stringify({prompt: message})
+        });
+        const data = await res.json();
+        chatHistoryDiv.removeChild(chatHistoryDiv.lastChild);
+        appendMessage('assistant', data.reply, true);
+    } catch(err) {
+        chatHistoryDiv.removeChild(chatHistoryDiv.lastChild);
+        appendMessage('assistant', `⚠️ Error: ${err.message}`);
+    }
+}
+
+// Run predefined query
+function runPredefinedQuery() {
+    const query = predefinedQuery.value;
+    if (!query) return alert("Please select a query.");
+    appendMessage('user', "[Predefined Query] " + query);
+    userInput.value = "sql " + query; // format for API
+    sendMessage();
+}
+</script>
+</body>
+</html>
+
+
+--- END FILE: ai_chat.php ---
+
+
+--- START FILE: all_tables.php ---
+
+<?php
+include 'header.php';
+include 'db.php';
+
+// 🔒 Ensure login
+if (!isset($_SESSION['user'])) {
+    header("Location: login.php");
+    exit();
+}
+
+// ✅ Get all tables dynamically
+$tables = [];
+$result = $conn->query("SHOW TABLES");
+if ($result) {
+    while ($row = $result->fetch_array()) {
+        $tables[] = $row[0];
+    }
+}
+
+// ✅ Default message
+$msg = "";
+
+// 💾 CREATE
+if ($_SERVER["REQUEST_METHOD"] == "POST" && $_POST['action'] === 'create_record') {
+    $table = $_POST['table'];
+    $fields = $_POST['fields'];
+    $columns = implode(",", array_keys($fields));
+    $placeholders = implode(",", array_fill(0, count($fields), "?"));
+    $values = array_values($fields);
+    $types = str_repeat('s', count($values));
+
+    $stmt = $conn->prepare("INSERT INTO `$table` ($columns) VALUES ($placeholders)");
+    $stmt->bind_param($types, ...$values);
+
+    $msg = $stmt->execute()
+        ? "✅ Record successfully added to '$table'."
+        : "❌ Error adding record: " . $conn->error;
+}
+
+// ✏️ UPDATE
+if ($_SERVER["REQUEST_METHOD"] == "POST" && $_POST['action'] === 'update_record') {
+    $table = $_POST['table'];
+    $pk = $_POST['primary_key'];
+    $pk_value = $_POST['pk_value'];
+    $fields = $_POST['fields'];
+
+    $set_clause = implode(", ", array_map(fn($k) => "$k=?", array_keys($fields)));
+    $values = array_values($fields);
+    $types = str_repeat('s', count($values)) . "s";
+
+    $stmt = $conn->prepare("UPDATE `$table` SET $set_clause WHERE $pk = ?");
+    $stmt->bind_param($types, ...array_merge($values, [$pk_value]));
+
+    $msg = $stmt->execute()
+        ? "✏️ Record successfully updated in '$table'."
+        : "❌ Error updating record: " . $conn->error;
+}
+
+// ❌ DELETE
+if ($_SERVER["REQUEST_METHOD"] == "POST" && $_POST['action'] === 'delete_record') {
+    $table = $_POST['table'];
+    $pk = $_POST['primary_key'];
+    $pk_value = $_POST['pk_value'];
+
+    $stmt = $conn->prepare("DELETE FROM `$table` WHERE $pk = ?");
+    $stmt->bind_param("s", $pk_value);
+
+    $msg = $stmt->execute()
+        ? "🗑️ Record successfully deleted from '$table'."
+        : "❌ Error deleting record: " . $conn->error;
+}
+?>
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>📊 Manage All Tables | Airline Reservation System</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+  <style>
+    /* 🌤 Sky Base */
+    html, body {
+      margin: 0;
+      height: 100%;
+      overflow-x: hidden;
+      font-family: 'Poppins', sans-serif;
+      background: linear-gradient(to bottom, #a1c4fd, #c2e9fb);
+      position: relative;
+      color: #0d47a1;
+    }
+
+    /* ☁️ Cloud Layers (Parallax) */
+    .cloud-layer {
+      position: absolute;
+      width: 200%;
+      height: 100%;
+      background: url('images/cloud.png') repeat-x;
+      background-size: contain;
+      opacity: 0.45;
+      top: 0;
+      left: -50%;
+      animation: moveClouds 55s linear infinite;
+      z-index: 1;
+    }
+    .cloud-layer:nth-child(1) { animation-duration: 160s; top: 5%; opacity: 0.6; }
+    .cloud-layer:nth-child(2) { animation-duration: 190s; top: 40%; opacity: 0.5; }
+    .cloud-layer:nth-child(3) { animation-duration: 220s; top: 75%; opacity: 0.4; }
+
+    @keyframes moveClouds {
+      from { background-position-x: 0; }
+      to { background-position-x: 10000px; }
+    }
+
+    /* ✈️ Airplane Animation */
+    .plane {
+      position: absolute;
+      width: 2500px;
+      top: -20%;
+      left: -600px;
+      opacity: 0.5;
+      filter: drop-shadow(0 1px 1px rgba(0,0,0,0.25));
+      z-index: 1;
+      animation: flyInsideClouds 5555s ease-in-out infinite;
+    }
+
+    @keyframes flyInsideClouds {
+      0% { transform: translate(0, 0) rotate(6deg); }
+      50% { transform: translate(110vw, -6vh) rotate(-4deg); }
+      100% { transform: translate(-200px, 3vh) rotate(6deg); }
+    }
+
+    /* 💎 Glass CRUD Section */
+    .glass-box {
+      position: relative;
+      z-index: 5;
+      background: rgba(255, 255, 255, 0.12);
+      backdrop-filter: blur(10px);
+      border-radius: 18px;
+      box-shadow: 0 6px 25px rgba(0, 0, 0, 0.2);
+      padding: 30px;
+      width: 90%;
+      max-width: 1100px;
+      margin: 120px auto;
+    }
+
+    .table {
+      background: rgba(255, 255, 255, 0.85);
+    }
+
+    h2 {
+      text-align: center;
+      font-weight: 700;
+      margin-bottom: 25px;
+      color: #0d47a1;
+    }
+
+    /* ✅ Popup Modal */
+    .modal.fade.show {
+      display: block;
+      background: rgba(0,0,0,0.6);
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ☁️ Background Animation Layers -->
+  <div class="cloud-layer"></div>
+  <div class="cloud-layer"></div>
+  <div class="cloud-layer"></div>
+  <img src="images/airplane.png" alt="plane" class="plane">
+
+  <div class="glass-box">
+    <h2>📊 Manage All Tables</h2>
+
+    <!-- CRUD Selector -->
+    <div class="crud-panel mb-4">
+      <form method="GET" class="row g-2 align-items-center">
+        <div class="col-md-5">
+          <select name="table" class="form-select" required>
+            <option value="">🔽 Select Table</option>
+            <?php foreach ($tables as $table): ?>
+              <option value="<?= htmlspecialchars($table) ?>" <?= (isset($_GET['table']) && $_GET['table'] === $table) ? 'selected' : '' ?>>
+                <?= ucfirst($table) ?>
+              </option>
+            <?php endforeach; ?>
+          </select>
+        </div>
+        <div class="col-md-4">
+          <select name="action" class="form-select" required>
+            <option value="">⚡ Select Action</option>
+            <option value="create" <?= ($_GET['action'] ?? '') === 'create' ? 'selected' : '' ?>>➕ Create</option>
+            <option value="read" <?= ($_GET['action'] ?? '') === 'read' ? 'selected' : '' ?>>📋 Read</option>
+            <option value="update" <?= ($_GET['action'] ?? '') === 'update' ? 'selected' : '' ?>>✏️ Update</option>
+            <option value="delete" <?= ($_GET['action'] ?? '') === 'delete' ? 'selected' : '' ?>>❌ Delete</option>
+          </select>
+        </div>
+        <div class="col-md-3">
+          <button type="submit" class="btn btn-primary w-100">Go</button>
+        </div>
+      </form>
+    </div>
+
+    <?php
+    if (isset($_GET['table']) && in_array($_GET['table'], $tables)) {
+        $table_name = $_GET['table'];
+        $action = $_GET['action'] ?? 'read';
+
+        echo "<div class='card border-0 shadow-sm'>";
+        echo "<div class='card-header bg-primary text-white fw-bold fs-5'>".ucfirst($table_name)."</div>";
+        echo "<div class='card-body table-responsive'>";
+
+        // READ Data
+        $data = $conn->query("SELECT * FROM `$table_name`");
+        if ($data && $data->num_rows > 0) {
+            echo "<table class='table table-bordered table-striped text-center'>";
+            echo "<thead class='table-light'><tr>";
+            $fields = $data->fetch_fields();
+            foreach ($fields as $field) echo "<th>{$field->name}</th>";
+            echo "</tr></thead><tbody>";
+            while ($row = $data->fetch_assoc()) {
+                echo "<tr>";
+                foreach ($row as $v) echo "<td>" . ($v === NULL || $v === '' ? '—' : htmlspecialchars($v)) . "</td>";
+                echo "</tr>";
+            }
+            echo "</tbody></table>";
+        } else {
+            echo "<p class='text-muted'>No data found in this table.</p>";
+        }
+
+        // FORMS
+        if ($action === 'create' || $action === 'update' || $action === 'delete') {
+            $columns = $conn->query("DESCRIBE `$table_name`");
+            $first_col = $columns->fetch_assoc();
+            $pk = $first_col['Field'];
+            $columns->data_seek(0);
+
+            echo "<hr><form method='POST' class='mt-3'>";
+            echo "<input type='hidden' name='table' value='$table_name'>";
+
+            if ($action === 'create') {
+                echo "<input type='hidden' name='action' value='create_record'>";
+                echo "<h5 class='text-success'>➕ Add New Record</h5>";
+                while ($col = $columns->fetch_assoc()) {
+                    $field = htmlspecialchars($col['Field']);
+                    echo "<div class='mb-2'><input type='text' name='fields[$field]' placeholder='$field' class='form-control'></div>";
+                }
+                echo "<button type='submit' class='btn btn-success mt-2'>Add Record</button>";
+            }
+
+            if ($action === 'update') {
+                echo "<input type='hidden' name='action' value='update_record'>";
+                echo "<input type='hidden' name='primary_key' value='$pk'>";
+                echo "<h5 class='text-warning'>✏️ Update Record</h5>";
+                echo "<input type='text' name='pk_value' placeholder='Enter $pk to Update' class='form-control mb-2'>";
+                while ($col = $columns->fetch_assoc()) {
+                    $field = htmlspecialchars($col['Field']);
+                    echo "<div class='mb-2'><input type='text' name='fields[$field]' placeholder='New value for $field' class='form-control'></div>";
+                }
+                echo "<button type='submit' class='btn btn-warning mt-2'>Update Record</button>";
+            }
+
+            if ($action === 'delete') {
+                echo "<input type='hidden' name='action' value='delete_record'>";
+                echo "<input type='hidden' name='primary_key' value='$pk'>";
+                echo "<h5 class='text-danger'>❌ Delete Record</h5>";
+                echo "<input type='text' name='pk_value' placeholder='Enter $pk to Delete' class='form-control mb-2'>";
+                echo "<button type='submit' class='btn btn-danger'>Delete Record</button>";
+            }
+
+            echo "</form>";
+        }
+
+        echo "</div></div>";
+    }
+    ?>
+  </div>
+
+  <!-- ✅ Popup Modal for CRUD Message -->
+  <?php if (!empty($msg)): ?>
+  <div class="modal fade show" id="statusModal" tabindex="-1" style="display:block;">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content text-center p-4">
+        <?php if (str_starts_with($msg, '✅') || str_starts_with($msg, '✏️') || str_starts_with($msg, '🗑️')): ?>
+          <h5 class="text-success"><?= $msg ?></h5>
+        <?php else: ?>
+          <h5 class="text-danger"><?= $msg ?></h5>
+        <?php endif; ?>
+        <button class="btn btn-primary mt-3" onclick="closeModal()">OK</button>
+      </div>
+    </div>
+  </div>
+  <?php endif; ?>
+
+  <script>
+    function closeModal() {
+      document.getElementById('statusModal').style.display = 'none';
+      window.location.href = "all_tables.php";
+    }
+  </script>
+</body>
+</html>
+
+
+--- END FILE: all_tables.php ---
+
+
+--- START FILE: background_elements.php ---
+
+<?php
+// Path: /background_elements.php
+// This file contains the updated animated HTML element for the background.
+?>
+
+<img src="images/airplane.png" alt="Animated Airplane" class="airplane">
+
+--- END FILE: background_elements.php ---
+
+
+--- START FILE: cancel_reservation.php ---
+
+<?php
+include 'header.php';
+include 'db.php';
+
+// 🔒 Ensure user login
+if (!isset($_SESSION['user'])) {
+    header("Location: login.php");
+    exit();
+}
+
+// 🧹 Handle Delete Request
+$status = '';
+if ($_SERVER["REQUEST_METHOD"] == "POST") {
+    $flight = $_POST['flight_number'];
+    $leg = $_POST['leg_no'];
+    $date = $_POST['date'];
+    $seat = $_POST['seat_no'];
+
+    $stmt = $conn->prepare("
+        DELETE FROM reservation
+        WHERE Flight_number = ? AND Leg_no = ? AND Date = ? AND Seat_no = ?
+    ");
+    $stmt->bind_param("siss", $flight, $leg, $date, $seat);
+
+    if ($stmt->execute()) {
+        $status = 'success';
+    } else {
+        $status = 'error';
+    }
+}
+?>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>❌ Cancel Reservation | Airline System</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+
+  <style>
+    /* 🌤️ Sky Background Animation */
+    @keyframes skyGradient {
+      0% { background: linear-gradient(to bottom, #a1c4fd, #c2e9fb); }
+      50% { background: linear-gradient(to bottom, #89f7fe, #66a6ff); }
+      100% { background: linear-gradient(to bottom, #a1c4fd, #c2e9fb); }
+    }
+
+    html, body {
+      margin: 0;
+      padding: 0;
+      height: 100vh;
+      overflow: hidden;
+      font-family: 'Poppins', sans-serif;
+      animation: skyGradient 45s ease-in-out infinite;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+    }
+
+    /* ☁️ Clouds */
+    .cloud-layer {
+      position: absolute;
+      width: 200%;
+      height: 100%;
+      top: 0;
+      left: -50%;
+      background: url('images/cloud.png') repeat-x;
+      background-size: contain;
+      opacity: 0.4;
+      animation: moveClouds 180s linear infinite;
+    }
+    .cloud-layer:nth-child(1) { top: 10%; opacity: 0.5; animation-duration: 140s; }
+    .cloud-layer:nth-child(2) { top: 45%; opacity: 0.4; animation-duration: 170s; }
+    .cloud-layer:nth-child(3) { top: 70%; opacity: 0.3; animation-duration: 200s; }
+
+    @keyframes moveClouds {
+      from { background-position-x: 0; }
+      to { background-position-x: 10000px; }
+    }
+
+    /* ✈️ Plane Flying Inside Clouds */
+    .plane {
+      position: absolute;
+      width: 280px;
+      top: 50%;
+      left: -350px;
+      z-index: 2;
+      opacity: 0.85;
+      animation: flyPlane 45s ease-in-out infinite;
+      filter: drop-shadow(0 8px 12px rgba(0,0,0,0.3));
+    }
+
+    @keyframes flyPlane {
+      0% { transform: translate(0, 0) rotate(3deg); opacity: 0.9; }
+      50% { transform: translate(110vw, -8vh) rotate(-3deg); opacity: 0.9; }
+      100% { transform: translate(-400px, 5vh) rotate(3deg); opacity: 0.9; }
+    }
+
+    /* 💎 Glass Form */
+    .glass-card {
+      position: relative;
+      z-index: 5;
+      background: rgba(255, 255, 255, 0.15);
+      backdrop-filter: blur(12px);
+      border-radius: 20px;
+      padding: 40px;
+      box-shadow: 0 8px 32px rgba(31, 38, 135, 0.37);
+      max-width: 600px;
+      width: 90%;
+      color: #0d47a1;
+    }
+
+    h2 {
+      font-weight: 700;
+      color: #b71c1c;
+      text-align: center;
+      margin-bottom: 25px;
+    }
+
+    .btn-danger {
+      background: linear-gradient(90deg, #e53935, #b71c1c);
+      border: none;
+      transition: 0.3s;
+    }
+    .btn-danger:hover {
+      background: linear-gradient(90deg, #b71c1c, #e53935);
+      transform: scale(1.05);
+    }
+
+    .btn-outline-primary, .btn-outline-secondary {
+      border-radius: 10px;
+      padding: 8px 18px;
+      font-weight: 600;
+    }
+  </style>
+</head>
+
+<body>
+  <!-- ☁️ Background Layers -->
+  <div class="cloud-layer"></div>
+  <div class="cloud-layer"></div>
+  <div class="cloud-layer"></div>
+  <img src="images/airplane.png" alt="airplane" class="plane">
+
+  <!-- 💎 Glass Form -->
+  <div class="glass-card">
+    <h2>❌ Cancel a Reservation</h2>
+
+    <form method="POST" class="mt-3">
+      <div class="mb-3">
+        <label class="form-label fw-bold text-dark">Select Reservation</label>
+        <select class="form-select" id="reservationDropdown" onchange="fillForm(this)">
+          <option value="">🔽 Choose a reservation</option>
+          <?php
+          $res = $conn->query("SELECT Flight_number, Leg_no, Date, Seat_no, Customer_name FROM reservation");
+          while ($row = $res->fetch_assoc()) {
+            $val = htmlspecialchars(json_encode($row));
+            echo "<option value='$val'>{$row['Customer_name']} - {$row['Flight_number']} (Seat {$row['Seat_no']})</option>";
+          }
+          ?>
+        </select>
+      </div>
+
+      <input type="text" name="flight_number" id="flight_number" class="form-control mb-2" placeholder="Flight Number" required>
+      <input type="number" name="leg_no" id="leg_no" class="form-control mb-2" placeholder="Leg No" required>
+      <input type="date" name="date" id="date" class="form-control mb-2" required>
+      <input type="text" name="seat_no" id="seat_no" class="form-control mb-3" placeholder="Seat No" required>
+
+      <button type="submit" class="btn btn-danger w-100">Cancel Reservation</button>
+    </form>
+
+    <div class="mt-4 d-flex justify-content-between">
+      <a href="index.php" class="btn btn-outline-secondary">🏠 Home</a>
+      <a href="view_reservations.php" class="btn btn-outline-primary">📋 View Reservations</a>
+    </div>
+  </div>
+
+  <!-- ✅ Success/Error Popup Modal -->
+  <?php if ($status): ?>
+  <div class="modal fade show" id="statusModal" tabindex="-1" style="display:block; background:rgba(0,0,0,0.5);" aria-modal="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content text-center p-4">
+        <?php if ($status === 'success'): ?>
+          <h4 class="text-success">✅ Reservation Cancelled!</h4>
+          <p>Your reservation has been successfully removed.</p>
+        <?php else: ?>
+          <h4 class="text-danger">❌ Error!</h4>
+          <p>Something went wrong. Please try again.</p>
+        <?php endif; ?>
+        <button class="btn btn-primary mt-3" onclick="closeModal()">OK</button>
+      </div>
+    </div>
+  </div>
+  <?php endif; ?>
+
+  <script>
+    // Autofill form from dropdown
+    function fillForm(select) {
+      if (!select.value) return;
+      const data = JSON.parse(select.value);
+      document.getElementById('flight_number').value = data.Flight_number;
+      document.getElementById('leg_no').value = data.Leg_no;
+      document.getElementById('date').value = data.Date;
+      document.getElementById('seat_no').value = data.Seat_no;
+    }
+
+    // Close modal
+    function closeModal() {
+      document.getElementById('statusModal').style.display = 'none';
+      window.location.href = "cancel_reservation.php";
+    }
+  </script>
+</body>
+</html>
+
+
+--- END FILE: cancel_reservation.php ---
+
+
+--- START FILE: clear_chat.php ---
+
+<?php
+session_start();
+unset($_SESSION['chat_history']);
+echo json_encode(["status" => "cleared"]);
+?>
+
+
+--- END FILE: clear_chat.php ---
+
+
+--- START FILE: code_appendix.txt ---
+
+--- START OF FILE: ai_assistant_api.php ---
+--------------------------------------------------------
+<?php
+header('Content-Type: application/json; charset=UTF-8');
+ini_set('display_errors', 0);
+error_reporting(E_ALL);
+
+include 'db.php';
+if (session_status() === PHP_SESSION_NONE) session_start();
+
+function sendJson($reply) {
+    echo json_encode(['reply' => $reply]);
+    exit;
+}
+
+// Catch errors
+set_error_handler(function($severity, $message) {
+    sendJson("⚠️ PHP Error: $message");
+});
+register_shutdown_function(function() {
+    $error = error_get_last();
+    if ($error) sendJson("⚠️ Fatal Error: {$error['message']}");
+});
+
+// Input
+$data = json_decode(file_get_contents("php://input"), true);
+$prompt = strtolower(trim($data['prompt'] ?? ''));
+$email = $_SESSION['email'] ?? '';
+if (!$prompt) sendJson("❌ No prompt provided.");
+
+// -------------------
+// Greetings
+// -------------------
+if (strpos($prompt, 'hello') !== false || strpos($prompt, 'hi') !== false) {
+    sendJson("👋 Hello! How can I assist you with your flights or reservations?");
+}
+
+// -------------------
+// Reservation Count
+// -------------------
+if (strpos($prompt, 'my bookings') !== false || strpos($prompt, 'how many reservations') !== false) {
+    if (!$email) sendJson("❌ Please log in to see your reservations.");
+    $stmt = $conn->prepare("SELECT COUNT(*) AS total FROM Reservation WHERE Email = ?");
+    $stmt->bind_param("s", $email);
+    $stmt->execute();
+    $row = $stmt->get_result()->fetch_assoc();
+    $count = (int)($row['total'] ?? 0);
+    sendJson("📊 You have $count active reservation(s).");
+}
+
+// -------------------
+// Reservation List
+// -------------------
+if (strpos($prompt, 'show my flights') !== false || strpos($prompt, 'my reservation') !== false) {
+    if (!$email) sendJson("❌ Please log in to view your reservations.");
+    $stmt = $conn->prepare("SELECT Flight_number, Leg_no, Date, Seat_no FROM Reservation WHERE Email = ?");
+    $stmt->bind_param("s", $email);
+    $stmt->execute();
+    $result = $stmt->get_result();
+
+    if ($result->num_rows === 0) sendJson("📭 You currently have no reservations.");
+
+    // Format as HTML table
+    $html = "<table class='table table-bordered table-sm'><thead><tr>";
+    while ($field = $result->fetch_field()) {
+        $html .= "<th>" . htmlspecialchars($field->name) . "</th>";
+    }
+    $html .= "</tr></thead><tbody>";
+
+    // Reset pointer
+    $result->data_seek(0);
+    while ($row = $result->fetch_assoc()) {
+        $html .= "<tr>";
+        foreach ($row as $val) $html .= "<td>" . htmlspecialchars($val) . "</td>";
+        $html .= "</tr>";
+    }
+    $html .= "</tbody></table>";
+
+    sendJson($html);
+}
+
+// -------------------
+// SQL Query Execution (SELECT only)
+// -------------------
+if (strpos($prompt, 'sql') !== false || strpos($prompt, 'query') !== false) {
+    preg_match('/SELECT .*/i', $prompt, $matches);
+    if (!isset($matches[0])) sendJson("❌ Please provide a valid SELECT query.");
+
+    $query = $matches[0];
+    if (!preg_match('/^\s*SELECT/i', $query)) sendJson("❌ Only SELECT queries are allowed.");
+
+    $result = $conn->query($query);
+    if (!$result) sendJson("❌ SQL Error: " . $conn->error);
+    if ($result->num_rows === 0) sendJson("✅ Query executed successfully, but no rows found.");
+
+    // Format as HTML table
+    $html = "<table class='table table-bordered table-striped table-sm'><thead><tr>";
+    while ($field = $result->fetch_field()) $html .= "<th>" . htmlspecialchars($field->name) . "</th>";
+    $html .= "</tr></thead><tbody>";
+
+    $result->data_seek(0);
+    while ($row = $result->fetch_assoc()) {
+        $html .= "<tr>";
+        foreach ($row as $val) $html .= "<td>" . htmlspecialchars($val) . "</td>";
+        $html .= "</tr>";
+    }
+    $html .= "</tbody></table>";
+
+    sendJson($html);
+}
+
+// -------------------
+// Fallback
+// -------------------
+sendJson("🤖 Sorry, I didn't understand your request. You can ask about reservations, bookings, or SQL queries.");
+--------------------------------------------------------
+--- END OF FILE: ai_assistant_api.php ---
+
+--- START OF FILE: ai_chat.php ---
+--------------------------------------------------------
+<?php
+session_start();
+if (!isset($_SESSION['username']) || !isset($_SESSION['email'])) {
+    header("Location: login.php");
+    exit();
+}
+$username = $_SESSION['username'];
+?>
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>AI Assistant - Airline Reservation System</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <style>
+        .chat-container {
+            max-width: 700px;
+            margin: 30px auto;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            height: 70vh;
+        }
+        .chat-history {
+            flex-grow: 1;
+            padding: 15px;
+            overflow-y: auto;
+            background-color: #f8f9fa;
+        }
+        .chat-input {
+            padding: 10px 15px;
+            border-top: 1px solid #ddd;
+            background-color: #fff;
+        }
+        .message {
+            margin-bottom: 10px;
+            padding: 8px 12px;
+            border-radius: 15px;
+            max-width: 80%;
+        }
+        .user-message {
+            background-color: #007bff;
+            color: white;
+            margin-left: auto;
+            text-align: right;
+        }
+        .assistant-message {
+            background-color: #e9ecef;
+            color: #343a40;
+            margin-right: auto;
+            text-align: left;
+        }
+    </style>
+</head>
+<body>
+<div class="chat-container shadow">
+    <div class="p-3 bg-primary text-white text-center">
+        <h5>🤖 Airline Assistant</h5>
+    </div>
+
+    <!-- Chat history -->
+    <div class="chat-history" id="chatHistory">
+        <div class="message assistant-message">
+            Hello, <?php echo htmlspecialchars($username); ?>! Ask about flights or reservations.
+        </div>
+    </div>
+
+    <!-- Predefined query dropdown -->
+    <div class="p-2 border-bottom bg-light">
+        <label for="predefinedQuery"><strong>Run a predefined query:</strong></label>
+        <select id="predefinedQuery" class="form-control">
+            <option value="">-- Select Query --</option>
+            <option value="SELECT * FROM flight;">All Flights</option>
+            <option value="SELECT * FROM reservation;">All Reservations</option>
+            <option value="SELECT Email, COUNT(*) AS Total_Reservations FROM reservation GROUP BY Email;">Reservation Count per Customer</option>
+            <option value="SELECT f.Flight_number, fl.Departure_airport_code, fl.Arrival_airport_code FROM flight f JOIN flight_leg fl ON f.Flight_number = fl.Flight_number;">Flight + Legs</option>
+            <option value="SELECT a.Airplane_id, a.Type_name, t.Company FROM airplane a JOIN airplane_type t ON a.Type_name = t.Type_name;">Airplanes with Type & Company</option>
+        </select>
+        <button class="btn btn-success btn-block mt-2" onclick="runPredefinedQuery()">Run Query</button>
+    </div>
+
+    <!-- User input -->
+    <div class="chat-input">
+        <div class="input-group">
+            <input type="text" id="userInput" class="form-control" placeholder="Type your message..." onkeypress="if(event.key==='Enter') sendMessage()">
+            <div class="input-group-append">
+                <button class="btn btn-primary" type="button" onclick="sendMessage()">Send</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+const chatHistoryDiv = document.getElementById('chatHistory');
+const userInput = document.getElementById('userInput');
+const predefinedQuery = document.getElementById('predefinedQuery');
+
+function appendMessage(sender, message, isHTML=false) {
+    const messageDiv = document.createElement('div');
+    messageDiv.classList.add('message', sender==='user'?'user-message':'assistant-message');
+    if (isHTML) messageDiv.innerHTML = message;
+    else messageDiv.textContent = message;
+    chatHistoryDiv.appendChild(messageDiv);
+    chatHistoryDiv.scrollTop = chatHistoryDiv.scrollHeight;
+}
+
+// Send free-text message
+async function sendMessage() {
+    const message = userInput.value.trim();
+    if (!message) return;
+    appendMessage('user', message);
+    userInput.value = '';
+    appendMessage('assistant', '...');
+
+    try {
+        const res = await fetch('ai_assistant_api.php', {
+            method: 'POST',
+            headers: {'Content-Type':'application/json'},
+            credentials: 'include',
+            body: JSON.stringify({prompt: message})
+        });
+        const data = await res.json();
+        chatHistoryDiv.removeChild(chatHistoryDiv.lastChild);
+        appendMessage('assistant', data.reply, true);
+    } catch(err) {
+        chatHistoryDiv.removeChild(chatHistoryDiv.lastChild);
+        appendMessage('assistant', `⚠️ Error: ${err.message}`);
+    }
+}
+
+// Run predefined query
+function runPredefinedQuery() {
+    const query = predefinedQuery.value;
+    if (!query) return alert("Please select a query.");
+    appendMessage('user', "[Predefined Query] " + query);
+    userInput.value = "sql " + query; // format for API
+    sendMessage();
+}
+</script>
+</body>
+</html>
+--------------------------------------------------------
+--- END OF FILE: ai_chat.php ---
+
+--- START OF FILE: all_tables.php ---
+--------------------------------------------------------
+<?php
+include 'header.php';
+include 'db.php';
+
+// 🔒 Ensure login
+if (!isset($_SESSION['user'])) {
+    header("Location: login.php");
+    exit();
+}
+
+// ✅ Get all tables dynamically
+$tables = [];
+$result = $conn->query("SHOW TABLES");
+if ($result) {
+    while ($row = $result->fetch_array()) {
+        $tables[] = $row[0];
+    }
+}
+
+// 💾 Handle Create
+if ($_SERVER["REQUEST_METHOD"] == "POST" && $_POST['action'] === 'create_record') {
+    $table = $_POST['table'];
+    $fields = $_POST['fields'];
+    $columns = implode(",", array_keys($fields));
+    $placeholders = implode(",", array_fill(0, count($fields), "?"));
+    $values = array_values($fields);
+    $types = str_repeat('s', count($values));
+
+    $stmt = $conn->prepare("INSERT INTO `$table` ($columns) VALUES ($placeholders)");
+    $stmt->bind_param($types, ...$values);
+
+    $msg = $stmt->execute()
+        ? "✅ Record added to '$table' successfully."
+        : "❌ Error adding record: " . $conn->error;
+}
+
+// ✏️ Handle Update
+if ($_SERVER["REQUEST_METHOD"] == "POST" && $_POST['action'] === 'update_record') {
+    $table = $_POST['table'];
+    $pk = $_POST['primary_key'];
+    $pk_value = $_POST['pk_value'];
+    $fields = $_POST['fields'];
+
+    $set_clause = implode(", ", array_map(fn($k) => "$k=?", array_keys($fields)));
+    $values = array_values($fields);
+    $types = str_repeat('s', count($values)) . "s";
+
+    $stmt = $conn->prepare("UPDATE `$table` SET $set_clause WHERE $pk = ?");
+    $stmt->bind_param($types, ...array_merge($values, [$pk_value]));
+
+    $msg = $stmt->execute()
+        ? "✅ Record updated successfully in '$table'."
+        : "❌ Error updating record: " . $conn->error;
+}
+
+// ❌ Handle Delete
+if ($_SERVER["REQUEST_METHOD"] == "POST" && $_POST['action'] === 'delete_record') {
+    $table = $_POST['table'];
+    $pk = $_POST['primary_key'];
+    $pk_value = $_POST['pk_value'];
+
+    $stmt = $conn->prepare("DELETE FROM `$table` WHERE $pk = ?");
+    $stmt->bind_param("s", $pk_value);
+
+    $msg = $stmt->execute()
+        ? "🗑️ Record deleted from '$table'."
+        : "❌ Error deleting record: " . $conn->error;
+}
+?>
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>📊 All Tables | Airline Reservation System</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+  <style>
+    body { background: #f4f6f9; }
+    .crud-panel { background: #fff; padding: 20px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); margin-bottom: 25px; }
+    .form-control { font-size: 0.9rem; }
+    .btn-sm { padding: 3px 8px; font-size: 0.8rem; }
+  </style>
+</head>
+
+<body>
+  <div class="container mt-4">
+    <h2 class="text-center text-primary mb-4">📊 All Database Tables</h2>
+
+    <!-- CRUD Panel -->
+    <div class="crud-panel">
+      <form method="GET" class="row g-2 align-items-center">
+        <div class="col-md-5">
+          <select name="table" class="form-select" required>
+            <option value="">🔽 Select Table</option>
+            <?php foreach ($tables as $table): ?>
+              <option value="<?= htmlspecialchars($table) ?>" 
+                <?= (isset($_GET['table']) && $_GET['table'] === $table) ? 'selected' : '' ?>>
+                <?= ucfirst($table) ?>
+              </option>
+            <?php endforeach; ?>
+          </select>
+        </div>
+
+        <div class="col-md-4">
+          <select name="action" class="form-select" required>
+            <option value="">⚡ Select Action</option>
+            <option value="create" <?= ($_GET['action'] ?? '') === 'create' ? 'selected' : '' ?>>➕ Create</option>
+            <option value="read" <?= ($_GET['action'] ?? '') === 'read' ? 'selected' : '' ?>>📋 Read</option>
+            <option value="update" <?= ($_GET['action'] ?? '') === 'update' ? 'selected' : '' ?>>✏️ Update</option>
+            <option value="delete" <?= ($_GET['action'] ?? '') === 'delete' ? 'selected' : '' ?>>❌ Delete</option>
+          </select>
+        </div>
+
+        <div class="col-md-3">
+          <button type="submit" class="btn btn-primary w-100">Go</button>
+        </div>
+      </form>
+    </div>
+
+    <?php if (!empty($msg)): ?>
+      <div class="alert alert-info"><?= $msg; ?></div>
+    <?php endif; ?>
+
+    <?php
+    if (isset($_GET['table']) && in_array($_GET['table'], $tables)) {
+        $table_name = $_GET['table'];
+        $action = $_GET['action'] ?? 'read';
+        echo "<div class='card mb-5 shadow-sm border-0'>";
+        echo "<div class='card-header bg-primary text-white fw-bold fs-5'>".ucfirst($table_name)."</div>";
+        echo "<div class='card-body table-responsive'>";
+
+        // Read data
+        $data = $conn->query("SELECT * FROM `$table_name`");
+        if ($data && $data->num_rows > 0) {
+            echo "<table class='table table-bordered table-striped align-middle text-center'>";
+            echo "<thead class='table-light'><tr>";
+            $fields = $data->fetch_fields();
+            foreach ($fields as $field) echo "<th>{$field->name}</th>";
+            echo "</tr></thead><tbody>";
+            $data->data_seek(0);
+            while ($row = $data->fetch_assoc()) {
+                echo "<tr>";
+                foreach ($row as $v) echo "<td>" . ($v === NULL || $v === '' ? '—' : htmlspecialchars($v)) . "</td>";
+                echo "</tr>";
+            }
+            echo "</tbody></table>";
+        } else {
+            echo "<p class='text-muted'>No data found in this table.</p>";
+        }
+
+        // Create
+        if ($action === 'create') {
+            $columns = $conn->query("DESCRIBE `$table_name`");
+            echo "<hr><h5 class='text-success'>➕ Add New Record</h5>";
+            echo "<form method='POST' class='mt-3'>";
+            echo "<input type='hidden' name='action' value='create_record'>";
+            echo "<input type='hidden' name='table' value='$table_name'>";
+            while ($col = $columns->fetch_assoc()) {
+                $field = htmlspecialchars($col['Field']);
+                echo "<div class='mb-2'><input type='text' name='fields[$field]' placeholder='$field' class='form-control'></div>";
+            }
+            echo "<button type='submit' class='btn btn-success mt-2'>Add Record</button>";
+            echo "</form>";
+        }
+
+        // Update
+        if ($action === 'update') {
+            $columns = $conn->query("DESCRIBE `$table_name`");
+            $first = $columns->fetch_assoc();
+            $pk = $first['Field'];
+            echo "<hr><h5 class='text-warning'>✏️ Update Record</h5>";
+            echo "<form method='POST' class='mt-3'>";
+            echo "<input type='hidden' name='action' value='update_record'>";
+            echo "<input type='hidden' name='table' value='$table_name'>";
+            echo "<input type='hidden' name='primary_key' value='$pk'>";
+            echo "<div class='mb-2'><input type='text' name='pk_value' placeholder='Enter $pk to Update' class='form-control'></div>";
+            $columns2 = $conn->query("DESCRIBE `$table_name`");
+            while ($col = $columns2->fetch_assoc()) {
+                $field = htmlspecialchars($col['Field']);
+                echo "<div class='mb-2'><input type='text' name='fields[$field]' placeholder='New value for $field' class='form-control'></div>";
+            }
+            echo "<button type='submit' class='btn btn-warning mt-2'>Update Record</button>";
+            echo "</form>";
+        }
+
+        // Delete
+        if ($action === 'delete') {
+            $columns = $conn->query("DESCRIBE `$table_name`");
+            $first = $columns->fetch_assoc();
+            $pk = $first['Field'];
+            echo "<hr><h5 class='text-danger'>❌ Delete Record</h5>";
+            echo "<form method='POST' class='mt-3'>";
+            echo "<input type='hidden' name='action' value='delete_record'>";
+            echo "<input type='hidden' name='table' value='$table_name'>";
+            echo "<input type='hidden' name='primary_key' value='$pk'>";
+            echo "<input type='text' name='pk_value' placeholder='Enter $pk to Delete' class='form-control mb-2'>";
+            echo "<button type='submit' class='btn btn-danger'>Delete Record</button>";
+            echo "</form>";
+        }
+
+        echo "</div></div>";
+    }
+    ?>
+  </div>
+</body>
+</html>
+--------------------------------------------------------
+--- END OF FILE: all_tables.php ---
+
+--- START OF FILE: cancel_reservation.php ---
+--------------------------------------------------------
+<?php
+include 'header.php';
+include 'db.php';
+
+// 🔒 Restrict access if not logged in
+if (!isset($_SESSION['user'])) {
+    header("Location: login.php");
+    exit();
+}
+
+// 🧹 Handle Delete Request
+if ($_SERVER["REQUEST_METHOD"] == "POST") {
+    $flight = $_POST['flight_number'];
+    $leg = $_POST['leg_no'];
+    $date = $_POST['date'];
+    $seat = $_POST['seat_no'];
+
+    // ✅ Use actual column names (not id)
+    $stmt = $conn->prepare("
+        DELETE FROM reservation
+        WHERE Flight_number = ? AND Leg_no = ? AND Date = ? AND Seat_no = ?
+    ");
+    $stmt->bind_param("siss", $flight, $leg, $date, $seat);
+
+    if ($stmt->execute()) {
+        header("Location: cancel_reservation.php?status=success");
+        exit();
+    } else {
+        header("Location: cancel_reservation.php?status=error");
+        exit();
+    }
+}
+?>
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>❌ Cancel Reservation | Airline System</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+  <style>
+    body {
+      background: #f4f6f9;
+      font-family: 'Segoe UI', sans-serif;
+    }
+    .container {
+      max-width: 600px;
+    }
+  </style>
+</head>
+
+<body class="container mt-5">
+  <h2 class="text-center text-danger mb-4">❌ Cancel a Reservation</h2>
+
+  <?php if (isset($_GET['status']) && $_GET['status'] == 'success'): ?>
+    <div class="alert alert-success text-center">✅ Reservation cancelled successfully!</div>
+  <?php elseif (isset($_GET['status']) && $_GET['status'] == 'error'): ?>
+    <div class="alert alert-danger text-center">❌ Cancellation failed. Please check the details and try again.</div>
+  <?php endif; ?>
+
+  <form method="POST" action="cancel_reservation.php" class="border p-4 rounded shadow-sm bg-light">
+
+    <!-- 🧭 Dropdown for existing reservations -->
+    <div class="mb-3">
+      <label class="form-label fw-bold">Select Existing Reservation</label>
+      <select class="form-select" id="reservationDropdown" onchange="fillForm(this)">
+        <option value="">🔽 Choose a reservation</option>
+        <?php
+        $res = $conn->query("SELECT Flight_number, Leg_no, Date, Seat_no, Customer_name FROM reservation");
+        while ($row = $res->fetch_assoc()) {
+          $val = htmlspecialchars(json_encode($row));
+          echo "<option value='$val'>{$row['Customer_name']} - {$row['Flight_number']} (Seat {$row['Seat_no']})</option>";
+        }
+        ?>
+      </select>
+    </div>
+
+    <input type="text" name="flight_number" id="flight_number" class="form-control mb-2" placeholder="Flight Number" required>
+    <input type="number" name="leg_no" id="leg_no" class="form-control mb-2" placeholder="Leg No" required>
+    <input type="date" name="date" id="date" class="form-control mb-2" required>
+    <input type="text" name="seat_no" id="seat_no" class="form-control mb-2" placeholder="Seat No" required>
+
+    <button type="submit" class="btn btn-danger w-100">Cancel Reservation</button>
+  </form>
+
+  <div class="mt-4 d-flex justify-content-between">
+    <a href="index.php" class="btn btn-outline-secondary">🏠 Home</a>
+    <a href="view_reservations.php" class="btn btn-outline-primary">📋 View Reservations</a>
+  </div>
+
+  <script>
+    // Autofill form from dropdown selection
+    function fillForm(select) {
+      if (!select.value) return;
+      const data = JSON.parse(select.value);
+      document.getElementById('flight_number').value = data.Flight_number;
+      document.getElementById('leg_no').value = data.Leg_no;
+      document.getElementById('date').value = data.Date;
+      document.getElementById('seat_no').value = data.Seat_no;
+    }
+  </script>
+</body>
+</html>
+--------------------------------------------------------
+--- END OF FILE: cancel_reservation.php ---
+
+--- START OF FILE: clear_chat.php ---
+--------------------------------------------------------
+<?php
+session_start();
+unset($_SESSION['chat_history']);
+echo json_encode(["status" => "cleared"]);
+?>
+--------------------------------------------------------
+--- END OF FILE: clear_chat.php ---
+
+--- START OF FILE: complex_queries.php ---
+--------------------------------------------------------
+<?php include 'db.php'; include 'header.php'; ?>
+<!DOCTYPE html>
+<html>
+<head>
+	<link rel="stylesheet" href="style.css">
+
+  <title>Reports - Complex Queries</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+</head>
+<body class="container mt-5">
+  <h2>📈 Airline Reports & Analytics</h2>
+
+  <?php
+  // 1️⃣ JOIN — Flight details with Airplane type
+  echo "<h4 class='mt-4 text-primary'>1. Flight and Airplane Type Details (JOIN)</h4>";
+  $q1 = "SELECT f.Flight_number, a.Airplane_id, t.Type_name, t.Company
+         FROM leg_instance li
+         JOIN airplane a ON li.Airplane_id = a.Airplane_id
+         JOIN airplane_type t ON a.Type_name = t.Type_name
+         JOIN flight f ON li.Flight_number = f.Flight_number
+         LIMIT 10";
+  $r1 = $conn->query($q1);
+  if ($r1->num_rows > 0) {
+      echo "<table class='table table-bordered table-striped'><tr>";
+      while ($field = $r1->fetch_field()) echo "<th>{$field->name}</th>";
+      echo "</tr>";
+      while ($row = $r1->fetch_assoc()) {
+          echo "<tr>";
+          foreach ($row as $val) echo "<td>$val</td>";
+          echo "</tr>";
+      }
+      echo "</table>";
+  }
+
+  // 2️⃣ UNION — Flights either from Air India or SpiceJet
+  echo "<h4 class='mt-4 text-primary'>2. Flights from Air India or SpiceJet (UNION)</h4>";
+  $q2 = "(SELECT Flight_number, Airline FROM flight WHERE Airline='Air India')
+         UNION
+         (SELECT Flight_number, Airline FROM flight WHERE Airline='SpiceJet')";
+  $r2 = $conn->query($q2);
+  if ($r2->num_rows > 0) {
+      echo "<table class='table table-bordered table-striped'><tr>";
+      while ($field = $r2->fetch_field()) echo "<th>{$field->name}</th>";
+      echo "</tr>";
+      while ($row = $r2->fetch_assoc()) {
+          echo "<tr>";
+          foreach ($row as $val) echo "<td>$val</td>";
+          echo "</tr>";
+      }
+      echo "</table>";
+  }
+
+  // 3️⃣ GROUP BY — Count reservations per customer
+  echo "<h4 class='mt-4 text-primary'>3. Reservations per Customer (GROUP BY)</h4>";
+  $q3 = "SELECT Customer_name, COUNT(*) AS total_reservations FROM reservation GROUP BY Customer_name";
+  $r3 = $conn->query($q3);
+  if ($r3->num_rows > 0) {
+      echo "<table class='table table-bordered table-striped'><tr>";
+      while ($field = $r3->fetch_field()) echo "<th>{$field->name}</th>";
+      echo "</tr>";
+      while ($row = $r3->fetch_assoc()) {
+          echo "<tr>";
+          foreach ($row as $val) echo "<td>$val</td>";
+          echo "</tr>";
+      }
+      echo "</table>";
+  }
+
+  // 4️⃣ SUBQUERY — Flights with more than one leg
+  echo "<h4 class='mt-4 text-primary'>4. Flights with Multiple Legs (SUBQUERY)</h4>";
+  $q4 = "SELECT Flight_number FROM flight_leg 
+         WHERE Flight_number IN (SELECT Flight_number FROM flight_leg GROUP BY Flight_number HAVING COUNT(*) > 1)";
+  $r4 = $conn->query($q4);
+  if ($r4->num_rows > 0) {
+      echo "<table class='table table-bordered table-striped'><tr><th>Flight_number</th></tr>";
+      while ($row = $r4->fetch_assoc()) echo "<tr><td>{$row['Flight_number']}</td></tr>";
+      echo "</table>";
+  }
+  ?>
+</body>
+</html>
+--------------------------------------------------------
+--- END OF FILE: complex_queries.php ---
+
+--- START OF FILE: config.php ---
+--------------------------------------------------------
+<?php
+// =========================
+// DATABASE CONFIG
+// =========================
+define("DB_SERVER", "localhost");
+define("DB_USERNAME", "root");
+define("DB_PASSWORD", "");
+define("DB_NAME", "airline_reservation");
+
+// =========================
+// OLLAMA CONFIG
+// =========================
+define("OLLAMA_HOST", "http://127.0.0.1:11434");  // default Ollama address
+define("OLLAMA_MODEL", "llama3.2:latest");        // the model you pulled
+?>
+--------------------------------------------------------
+--- END OF FILE: config.php ---
+
+--- START OF FILE: db.php ---
+--------------------------------------------------------
+<?php
+$host = 'localhost';
+$user = 'root';
+$password = '';
+$dbname = 'airline';
+$conn = new mysqli($host, $user, $password, $dbname);
+if ($conn->connect_error) {
+    die("Database Connection Failed: " . $conn->connect_error);
+}
+?>
+--------------------------------------------------------
+--- END OF FILE: db.php ---
+
+--- START OF FILE: header.php ---
+--------------------------------------------------------
+<?php
+// ✅ Session Handling at the very top
+if (session_status() === PHP_SESSION_NONE) session_start();
+?>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>✈️ Airline System</title>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+<style>
+body { background: linear-gradient(to right, #eef2f3, #8e9eab); font-family: 'Poppins', sans-serif; }
+.nav-link:hover { background-color: #0d6efd; color: #fff !important; border-radius: 8px; }
+#aiChatBox { display: none; flex-direction: column; position: fixed; bottom: 80px; right: 25px; width: 360px; height: 460px; background: white; border-radius: 12px; border: 1px solid #ccc; box-shadow: 0 5px 15px rgba(0,0,0,0.2); resize: both; overflow: hidden; min-width: 260px; min-height: 300px; max-width: 800px; max-height: 700px; z-index: 9999; }
+#aiChatHeader { background: #0d6efd; color: white; padding: 10px 12px; font-weight: bold; display: flex; justify-content: space-between; align-items: center; cursor: move; }
+#aiChatBody { flex: 1; padding: 10px; overflow-y: auto; background: #f8f9fa; font-size: 14px; }
+.ai-msg, .user-msg { margin: 6px 0; padding: 8px 10px; border-radius: 10px; max-width: 90%; word-wrap: break-word; }
+.ai-msg { background: #e9ecef; text-align: left; }
+.user-msg { background: #cfe2ff; text-align: right; margin-left: auto; }
+#aiChatInput { display: flex; border-top: 1px solid #ccc; }
+#aiInput { flex: 1; border: none; padding: 8px; outline: none; }
+#aiSend { border: none; background: #0d6efd; color: white; padding: 8px 12px; cursor: pointer; }
+#aiSend:hover { background: #0b5ed7; }
+</style>
+</head>
+<body>
+
+<!-- ✅ NAVBAR -->
+<nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm fixed-top">
+<div class="container-fluid">
+<a class="navbar-brand fw-bold text-primary" href="index.php">✈️ Airline System</a>
+<button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"><span class="navbar-toggler-icon"></span></button>
+<div class="collapse navbar-collapse" id="navbarNav">
+<ul class="navbar-nav ms-auto align-items-center">
+<?php if (isset($_SESSION['user'])): ?>
+<li class="nav-item"><a class="nav-link" href="index.php">🏠 Home</a></li>
+<li class="nav-item"><a class="nav-link" href="make_reservation.php">➕ Book</a></li>
+<li class="nav-item"><a class="nav-link" href="view_reservations.php">📋 View</a></li>
+<li class="nav-item"><a class="nav-link" href="cancel_reservation.php">❌ Cancel</a></li>
+<li class="nav-item"><a class="nav-link" href="all_tables.php">📊 Tables</a></li>
+<li class="nav-item"><a class="nav-link" href="query_executor.php">🧠 SQL</a></li>
+<li class="nav-item"><button id="aiBtn" class="btn btn-outline-primary btn-sm ms-2">💬 AI Assistant</button></li>
+<li class="nav-item"><span class="nav-link text-success fw-semibold">👤 <?= htmlspecialchars($_SESSION['user']); ?></span></li>
+<li class="nav-item"><a class="nav-link text-danger" href="logout.php">🚪 Logout</a></li>
+<?php else: ?>
+<li class="nav-item"><a class="nav-link" href="login.php">Login</a></li>
+<li class="nav-item"><a class="nav-link" href="signup.php">Sign Up</a></li>
+<?php endif; ?>
+</ul>
+</div>
+</div>
+</nav>
+
+<!-- 💬 AI Chat Popup -->
+<div id="aiChatBox">
+<div id="aiChatHeader">🤖 Airline Assistant <span id="aiClose" style="cursor:pointer;">❌</span></div>
+<div id="aiChatBody"><div class="ai-msg">👋 Hello! I'm your Airline Assistant. Ask about flights or reservations!</div></div>
+<div id="aiChatInput">
+<input type="text" id="aiInput" placeholder="Type your question...">
+<button id="aiSend">Send</button>
+</div>
+</div>
+
+<script>
+// --- DOM Elements
+const aiBtn = document.getElementById("aiBtn");
+const aiBox = document.getElementById("aiChatBox");
+const aiClose = document.getElementById("aiClose");
+const aiInput = document.getElementById("aiInput");
+const aiSend = document.getElementById("aiSend");
+const aiBody = document.getElementById("aiChatBody");
+const aiHeader = document.getElementById("aiChatHeader");
+
+// ✅ Show / Hide Chat
+aiBtn?.addEventListener("click", () => aiBox.style.display = "flex");
+aiClose?.addEventListener("click", () => aiBox.style.display = "none");
+
+// ✅ Send Message
+aiSend.addEventListener("click", sendMessage);
+aiInput.addEventListener("keypress", (e) => { if (e.key === "Enter") sendMessage(); });
+
+async function sendMessage() {
+  const text = aiInput.value.trim();
+  if (!text) return;
+  aiBody.innerHTML += `<div class='user-msg'>${text}</div>`;
+  aiInput.value = "";
+  aiBody.scrollTop = aiBody.scrollHeight;
+
+  try {
+    const res = await fetch("ai_assistant_api.php", {
+      method: "POST",
+      headers: {"Content-Type": "application/json"},
+      body: JSON.stringify({prompt: text})
+    });
+
+    // ✅ Safely parse JSON
+    let data;
+    try { data = await res.json(); } 
+    catch(err) { data = {reply: "⚠️ Error: Invalid response from server"}; }
+
+    aiBody.innerHTML += `<div class='ai-msg'>${data.reply}</div>`;
+  } catch (err) {
+    aiBody.innerHTML += `<div class='ai-msg text-danger'>⚠️ Error: ${err.message}</div>`;
+  }
+
+  aiBody.scrollTop = aiBody.scrollHeight;
+}
+
+// ✅ Drag functionality
+let isDragging = false, offsetX, offsetY;
+aiHeader.addEventListener("mousedown", e => {
+  isDragging = true;
+  const rect = aiBox.getBoundingClientRect();
+  offsetX = e.clientX - rect.left;
+  offsetY = e.clientY - rect.top;
+});
+document.addEventListener("mousemove", e => {
+  if (!isDragging) return;
+  aiBox.style.left = (e.clientX - offsetX) + "px";
+  aiBox.style.top = (e.clientY - offsetY) + "px";
+});
+document.addEventListener("mouseup", () => isDragging = false);
+</script>
+--------------------------------------------------------
+--- END OF FILE: header.php ---
+
+--- START OF FILE: index.php ---
+--------------------------------------------------------
+<?php
+include 'header.php';
+include 'db.php';
+
+// 🔒 Redirect if not logged in
+if (!isset($_SESSION['user'])) {
+    header("Location: login.php");
+    exit();
+}
+?>
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>✈️ Airline Reservation Dashboard</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <style>
+    body {
+      background: linear-gradient(to top, #87ceeb, #e0f7fa);
+      font-family: "Poppins", sans-serif;
+      min-height: 100vh;
+      overflow-x: hidden;
+      position: relative;
+    }
+
+    .hero-section {
+      background: linear-gradient(135deg, #007bff, #00c6ff);
+      color: white;
+      padding: 80px 0;
+      text-align: center;
+      border-radius: 15px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+      margin-bottom: 40px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .hero-section h1 { font-size: 2.8rem; font-weight: 700; }
+    .hero-section p { font-size: 1.2rem; margin-top: 15px; }
+
+    .feature-card {
+      border-radius: 15px;
+      transition: all 0.3s ease;
+      cursor: pointer;
+    }
+
+    .feature-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 8px 20px rgba(0,0,0,0.2);
+    }
+
+    footer {
+      margin-top: 60px;
+      text-align: center;
+      color: #555;
+    }
+
+    /* =======================
+       Cloud Background
+    ====================== */
+    .cloud {
+      position: fixed;
+      top: 10%;
+      left: -3000px;
+      width: 4000px;
+      opacity: 0.5;
+      z-index: 0;
+      animation: cloudMove 12s linear infinite;
+    }
+
+    @keyframes cloudMove {
+      0% { transform: translateX(0); }
+      100% { transform: translateX(130vw); }
+    }
+
+    /* =======================
+       Airplane
+    ====================== */
+    .airplane {
+      position: fixed;
+      top: 0%;
+      left: -2000px;
+      width: 4000px;
+      z-index: 0;
+	opacity: 0.1;
+      animation: fly 20s linear infinite;
+    }
+
+    @keyframes fly {
+      0% { transform: translateX(0) rotate(0deg); }
+      50% { transform: translateX(120vw) rotate(15deg); }
+      100% { transform: translateX(-10vw) rotate(0deg); }
+    }
+  </style>
+</head>
+
+<body>
+  <!-- 🌥 Cloud Background -->
+  <img src="images/cloud.png" class="cloud" alt="Cloud">
+
+  <!-- ✈️ Airplane -->
+  <img src="images/airplane.png" class="airplane" alt="Airplane">
+
+  <div class="container mt-5">
+    <!-- 🌟 Hero Section -->
+    <div class="hero-section">
+      <h1>Welcome to the Airline Reservation System</h1>
+      <p>Hello, <strong><?= htmlspecialchars($_SESSION['user']); ?></strong> 👋</p>
+      <p>Manage your bookings, view reservations, and explore flight information — all in one place.</p>
+    </div>
+
+    <!-- 🧩 System Overview -->
+    <div class="text-center mb-5">
+      <h2 class="fw-bold text-primary mb-3">What You Can Do Here</h2>
+      <p class="text-muted">This Airline Reservation System helps passengers easily manage flights and bookings.  
+      You can book, view, cancel reservations, and even chat with our AI assistant for instant support.</p>
+    </div>
+
+    <!-- 🧭 Main Feature Cards -->
+    <div class="row g-4">
+      <div class="col-md-4">
+        <div class="card feature-card text-center border-primary">
+          <div class="card-body">
+            <h4>🛫 Book a Flight</h4>
+            <p>Reserve your next flight easily with our smart booking system.</p>
+            <a href="make_reservation.php" class="btn btn-primary">Book Now</a>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-md-4">
+        <div class="card feature-card text-center border-success">
+          <div class="card-body">
+            <h4>📋 View Reservations</h4>
+            <p>See your upcoming and past reservations with full details.</p>
+            <a href="view_reservations.php" class="btn btn-success">View Details</a>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-md-4">
+        <div class="card feature-card text-center border-danger">
+          <div class="card-body">
+            <h4>❌ Cancel Booking</h4>
+            <p>Need to change your plans? Cancel any booking safely.</p>
+            <a href="cancel_reservation.php" class="btn btn-danger">Cancel Now</a>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 🔍 Data Section -->
+    <div class="row g-4 mt-4">
+      <div class="col-md-6">
+        <div class="card feature-card border-warning text-center">
+          <div class="card-body">
+            <h4>📊 All Tables</h4>
+            <p>Explore your airline database — users, flights, and reservations.</p>
+            <a href="all_tables.php" class="btn btn-warning">View Tables</a>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-md-6">
+        <div class="card feature-card border-info text-center">
+          <div class="card-body">
+            <h4>🧠 SQL Query Explorer</h4>
+            <p>Run custom SQL queries securely to understand your data better.</p>
+            <a href="query_executor.php" class="btn btn-info text-white">Open Explorer</a>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 🤖 AI Assistant Note -->
+    <div class="mt-5 text-center">
+      <h3 class="text-primary">💬 AI Assistant</h3>
+      <p class="text-muted">Need quick help? Click on the <strong>💬 AI Assistant</strong> button in the top menu to chat with your intelligent airline assistant —  
+      ask about flight availability, booking details, or SQL tips!</p>
+    </div>
+
+    <!-- Footer -->
+    <footer class="mt-5 text-muted">
+      <hr>
+      <p>✨ Airline Reservation System — Developed by UVCE Students | PHP + MySQL + Bootstrap + AI</p>
+    </footer>
+  </div>
+</body>
+</html>
+--------------------------------------------------------
+--- END OF FILE: index.php ---
+
+--- START OF FILE: insert_row.php ---
+--------------------------------------------------------
+<?php
+include 'db.php';
+
+if (!isset($_POST['action'])) {
+    echo "invalid request";
+    exit;
+}
+
+// 🧱 STEP 1: Fetch column names for modal form
+if ($_POST['action'] === 'get_columns') {
+    $table = preg_replace('/[^a-zA-Z0-9_]/', '', $_POST['table']);
+    $res = $conn->query("SHOW COLUMNS FROM `$table`");
+    if ($res->num_rows > 0) {
+        echo "<input type='hidden' name='table' value='$table'>";
+        echo "<input type='hidden' name='action' value='insert_row'>";
+        while ($col = $res->fetch_assoc()) {
+            $name = htmlspecialchars($col['Field']);
+            echo "
+              <div class='mb-3'>
+                <label class='form-label'>$name</label>
+                <input type='text' class='form-control' name='cols[$name]' placeholder='Enter $name'>
+              </div>
+            ";
+        }
+    } else {
+        echo "<p>No columns found for this table.</p>";
+    }
+    exit;
+}
+
+// 🧩 STEP 2: Insert new row
+if ($_POST['action'] === 'insert_row') {
+    $table = preg_replace('/[^a-zA-Z0-9_]/', '', $_POST['table']);
+    $cols = $_POST['cols'] ?? [];
+    if (empty($cols)) {
+        echo "No data to insert.";
+        exit;
+    }
+
+    $columns = array_keys($cols);
+    $values = array_values($cols);
+
+    $colList = implode("`,`", $columns);
+    $placeholders = rtrim(str_repeat('?,', count($values)), ',');
+
+    $stmt = $conn->prepare("INSERT INTO `$table` (`$colList`) VALUES ($placeholders)");
+    $types = str_repeat('s', count($values));
+    $stmt->bind_param($types, ...$values);
+
+    if ($stmt->execute()) {
+        echo "✅ Row inserted successfully!";
+    } else {
+        echo "❌ Insert failed: " . $conn->error;
+    }
+    exit;
+}
+?>
+--------------------------------------------------------
+--- END OF FILE: insert_row.php ---
+
+--- START OF FILE: login.php ---
+--------------------------------------------------------
+<?php
+session_start();
+include 'db.php';
+
+$error = "";
+
+if ($_SERVER["REQUEST_METHOD"] == "POST") {
+    $email = trim($_POST['email']);
+    $password = $_POST['password'];
+
+    $stmt = $conn->prepare("SELECT * FROM users WHERE email = ?");
+    $stmt->bind_param("s", $email);
+    $stmt->execute();
+    $result = $stmt->get_result();
+
+    if ($row = $result->fetch_assoc()) {
+        if (password_verify($password, $row['password'])) {
+            // ✅ Store only email in session
+            $_SESSION['email'] = $row['email'];
+            $_SESSION['user'] = $row['username']; // optional, for greeting
+
+            header("Location: index.php");
+            exit();
+        } else {
+            $error = "❌ Invalid password.";
+        }
+    } else {
+        $error = "❌ Email not found.";
+    }
+}
+?>
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Login | Airline System</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+</head>
+<body class="container mt-5">
+  <h2 class="mb-4">✈️ Airline System Login</h2>
+
+  <?php if (!empty($error)): ?>
+    <div class="alert alert-danger"><?= $error ?></div>
+  <?php endif; ?>
+
+  <form method="POST" class="border p-4 rounded bg-light shadow-sm">
+    <input type="email" name="email" class="form-control mb-2" placeholder="Email" required>
+    <input type="password" name="password" class="form-control mb-2" placeholder="Password" required>
+    <button type="submit" class="btn btn-primary w-100">Login</button>
+  </form>
+
+  <div class="mt-3">
+    <a href="signup.php" class="btn btn-link">Sign Up</a>
+  </div>
+</body>
+</html>
+--------------------------------------------------------
+--- END OF FILE: login.php ---
+
+--- START OF FILE: logout.php ---
+--------------------------------------------------------
+<?php
+session_start();
+session_destroy();
+header("Location: login.php");
+exit();
+?>
+--------------------------------------------------------
+--- END OF FILE: logout.php ---
+
+--- START OF FILE: make_reservation.php ---
+--------------------------------------------------------
+<?php
+session_start();
+if (!isset($_SESSION['email'])) {
+    header("Location: login.php");
+    exit();
+}
+?>
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Make a Reservation</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+</head>
+<body class="container mt-5">
+  <h2 class="mb-4">✈️ Make a Reservation</h2>
+
+  <form action="reservation.php" method="POST" class="border p-4 rounded bg-light shadow-sm">
+    <div class="mb-3">
+      <label for="flight_number" class="form-label">Flight Number</label>
+      <input type="text" name="flight_number" id="flight_number" class="form-control" required>
+    </div>
+
+    <div class="mb-3">
+      <label for="leg_no" class="form-label">Leg Number</label>
+      <input type="number" name="leg_no" id="leg_no" class="form-control" required>
+    </div>
+
+    <div class="mb-3">
+      <label for="date" class="form-label">Date</label>
+      <input type="date" name="date" id="date" class="form-control" required>
+    </div>
+
+    <div class="mb-3">
+      <label for="airplane_id" class="form-label">Airplane ID</label>
+      <input type="text" name="airplane_id" id="airplane_id" class="form-control" required>
+    </div>
+
+    <div class="mb-3">
+      <label for="seat_no" class="form-label">Seat Number</label>
+      <input type="text" name="seat_no" id="seat_no" class="form-control" required>
+    </div>
+
+    <div class="mb-3">
+      <label for="cphone" class="form-label">Contact Phone</label>
+      <input type="text" name="cphone" id="cphone" class="form-control" required>
+    </div>
+
+    <button type="submit" class="btn btn-success w-100">Reserve</button>
+  </form>
+
+  <div class="mt-3">
+    <a href="view_reservation.php" class="btn btn-secondary">Back to Reservations</a>
+  </div>
+</body>
+</html>
+--------------------------------------------------------
+--- END OF FILE: make_reservation.php ---
+
+--- START OF FILE: query_executor.php ---
+--------------------------------------------------------
+<?php
+include 'db.php';
+session_start();
+?>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>🧠 SQL Query Explorer</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    const form = document.getElementById("queryForm");
+    const manualInput = document.getElementById("manual_query");
+    manualInput.addEventListener("keydown", function (e) {
+        if (e.key === "Enter" && !e.shiftKey) {
+            e.preventDefault();
+            form.submit();
+        }
+    });
+});
+</script>
+</head>
+<body>
+<?php include 'header.php'; ?>
+
+<div class="container mt-5">
+<h2>🧮 SQL Query Explorer</h2>
+<p class="text-muted">Explore your airline database using predefined queries, manual SELECT, or aggregate functions.</p>
+
+<form method="POST" id="queryForm" class="mb-4">
+    <label class="form-label fw-semibold">Choose a predefined query:</label>
+    <select name="query_choice" class="form-select mb-3">
+        <option value="">-- Select Query --</option>
+
+        <option value="show_tables">🗂️ Show All Tables</option>
+
+        <optgroup label="Aggregates">
+            <option value="agg1">📊 Count Reservations per Flight</option>
+            <option value="agg2">📊 Total Seats per Airplane Type</option>
+            <option value="agg3">📊 Average Seats per Flight</option>
+            <option value="agg4">📊 Max & Min Seats in Airplanes</option>
+        </optgroup>
+
+        <optgroup label="Complex Joins">
+            <option value="j1">Reservation + Flight</option>
+            <option value="j2">Flight + Airplane + Airplane Type</option>
+            <option value="j3">Reservation + Leg Instance</option>
+            <option value="j4">Reservation + Flight + Leg Instance</option>
+            <option value="j5">Reservation + Flight + Airport</option>
+            <option value="j6">Flight + Leg Instance + Airport</option>
+        </optgroup>
+    </select>
+
+    <label for="manual_query" class="form-label fw-semibold mt-3">Or enter your own SQL query (SELECT only):</label>
+    <textarea name="manual_query" id="manual_query" class="form-control mb-3" rows="4" placeholder="SELECT * FROM reservation;"></textarea>
+
+    <button type="submit" class="btn btn-success">Run Query</button>
+</form>
+
+<?php
+if ($_SERVER["REQUEST_METHOD"] == "POST") {
+    $manual_query = trim($_POST['manual_query'] ?? '');
+    $choice = $_POST['query_choice'] ?? '';
+    $query = '';
+
+    // Predefined queries
+    $queries = [
+        // Complex joins
+        'j1' => "SELECT r.Email, r.Flight_number, f.Airline
+                 FROM reservation r
+                 JOIN flight f ON r.Flight_number = f.Flight_number;",
+        'j2' => "SELECT f.Flight_number, f.Airline, a.Airplane_id, a.Type_name, t.Company, t.Max_seats
+                 FROM flight f
+                 JOIN airplane a ON a.Airplane_id = a.Airplane_id -- adjust if needed
+                 JOIN airplane_type t ON a.Type_name = t.Type_name;",
+        'j3' => "SELECT r.Email, r.Flight_number, li.Date, li.Airplane_id
+                 FROM reservation r
+                 JOIN leg_instance li ON r.Flight_number = li.Flight_number AND r.Leg_no = li.Leg_no AND r.Date = li.Date;",
+        'j4' => "SELECT r.Email, r.Flight_number, f.Airline, li.Date, li.Airplane_id
+                 FROM reservation r
+                 JOIN flight f ON r.Flight_number = f.Flight_number
+                 JOIN leg_instance li ON r.Flight_number = li.Flight_number AND r.Leg_no = li.Leg_no AND r.Date = li.Date;",
+        'j5' => "SELECT r.Email, r.Flight_number, dep.Name AS Departure, arr.Name AS Arrival, li.Date
+                 FROM reservation r
+                 JOIN leg_instance li ON r.Flight_number = li.Flight_number AND r.Leg_no = li.Leg_no AND r.Date = li.Date
+                 JOIN flight_leg fl ON li.Flight_number = fl.Flight_number AND li.Leg_no = fl.Leg_no
+                 JOIN airport dep ON fl.Departure_airport_code = dep.Airport_code
+                 JOIN airport arr ON fl.Arrival_airport_code = arr.Airport_code;",
+        'j6' => "SELECT f.Flight_number, f.Airline, li.Airplane_id, dep.Name AS Departure, arr.Name AS Arrival, li.Departure_time, li.Arrival_time
+                 FROM flight f
+                 JOIN leg_instance li ON f.Flight_number = li.Flight_number
+                 JOIN flight_leg fl ON f.Flight_number = fl.Flight_number AND li.Leg_no = fl.Leg_no
+                 JOIN airport dep ON fl.Departure_airport_code = dep.Airport_code
+                 JOIN airport arr ON fl.Arrival_airport_code = arr.Airport_code;",
+
+        // Aggregate queries
+        'agg1' => "SELECT Flight_number, COUNT(*) AS Total_Reservations
+                   FROM reservation
+                   GROUP BY Flight_number
+                   ORDER BY Total_Reservations DESC;",
+        'agg2' => "SELECT t.Type_name, t.Company, SUM(a.Total_no_of_seats) AS Total_Seats
+                   FROM airplane a
+                   JOIN airplane_type t ON a.Type_name = t.Type_name
+                   GROUP BY t.Type_name, t.Company;",
+        'agg3' => "SELECT f.Flight_number, AVG(li.Number_of_available_seats) AS Avg_Seats
+                   FROM flight f
+                   JOIN leg_instance li ON f.Flight_number = li.Flight_number
+                   GROUP BY f.Flight_number;",
+        'agg4' => "SELECT Type_name, MAX(Total_no_of_seats) AS Max_Seats, MIN(Total_no_of_seats) AS Min_Seats
+                   FROM airplane
+                   GROUP BY Type_name;"
+    ];
+
+    // Determine the query
+    if ($choice == 'show_tables') {
+        $query = "SHOW TABLES;";
+    } elseif ($manual_query && preg_match('/^\s*SELECT\b/i', $manual_query)) {
+        $query = $manual_query;
+    } elseif ($choice && isset($queries[$choice])) {
+        $query = $queries[$choice];
+    }
+
+    // Execute and display results
+    if ($query) {
+        echo "<h4 class='text-primary mt-4'>🧾 Query Result</h4>";
+        $result = $conn->query($query);
+
+        if ($result) {
+            if ($result->num_rows > 0) {
+                echo "<div class='table-responsive mt-3'><table class='table table-bordered table-striped table-sm'>";
+                echo "<thead class='table-light'><tr>";
+                while ($field = $result->fetch_field()) {
+                    echo "<th>" . htmlspecialchars($field->name ?? '') . "</th>";
+                }
+                echo "</tr></thead><tbody>";
+                while ($row = $result->fetch_assoc()) {
+                    echo "<tr>";
+                    foreach ($row as $val) {
+                        echo "<td>" . htmlspecialchars($val ?? '') . "</td>";
+                    }
+                    echo "</tr>";
+                }
+                echo "</tbody></table></div>";
+            } else {
+                echo "<div class='alert alert-info mt-3'>✅ Query executed successfully, no rows found.</div>";
+            }
+        } else {
+            echo "<div class='alert alert-danger mt-3'>❌ SQL Error: " . htmlspecialchars($conn->error) . "<br><code>$query</code></div>";
+        }
+    } else {
+        echo "<div class='alert alert-warning mt-3'>⚠️ Please select a valid query or enter a valid SQL query.</div>";
+    }
+}
+?>
+</div>
+</body>
+</html>
+--------------------------------------------------------
+--- END OF FILE: query_executor.php ---
+
+--- START OF FILE: reservation.php ---
+--------------------------------------------------------
+<?php
+session_start();
+include 'db.php';
+
+// ✅ Ensure user is logged in
+if (!isset($_SESSION['email'])) {
+    echo "<div class='container mt-5'><div class='alert alert-danger'>❌ You must be logged in to make a reservation.</div></div>";
+    exit;
+}
+
+// ✅ Only handle POST requests
+if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+    echo "<div class='container mt-5'><div class='alert alert-warning'>⚠️ Please access this page via the reservation form.</div></div>";
+    exit;
+}
+
+// ✅ Collect and validate form data
+$flight_number   = trim($_POST['flight_number'] ?? '');
+$leg_no          = intval($_POST['leg_no'] ?? 0);
+$date            = $_POST['date'] ?? '';
+$airplane_id     = trim($_POST['airplane_id'] ?? '');
+$seat_no         = trim($_POST['seat_no'] ?? '');
+$cphone          = trim($_POST['cphone'] ?? '');
+$customer_name   = $_SESSION['user'] ?? 'Unknown';
+$customer_email  = $_SESSION['email'];
+
+if (!$flight_number || !$leg_no || !$date || !$airplane_id || !$seat_no || !$cphone) {
+    echo "<div class='container mt-5'><div class='alert alert-warning'>⚠️ Please fill in all required fields.</div></div>";
+    exit;
+}
+
+// ✅ Insert reservation
+$stmt = $conn->prepare("INSERT INTO Reservation (Flight_number, Leg_no, Date, Airplane_id, Seat_no, Customer_name, Cphone, Email)
+                        VALUES (?, ?, ?, ?, ?, ?, ?, ?)");
+$stmt->bind_param("sissssss", $flight_number, $leg_no, $date, $airplane_id, $seat_no, $customer_name, $cphone, $customer_email);
+
+echo "<div class='container mt-5'>";
+if ($stmt->execute()) {
+    echo "<div class='alert alert-success'>✅ Reservation successful for flight <strong>$flight_number</strong> on <strong>$date</strong>!</div>";
+    echo "<a href='view_reservation.php' class='btn btn-primary'>View My Reservations</a>";
+} else {
+    echo "<div class='alert alert-danger'>❌ Reservation failed: " . htmlspecialchars($conn->error) . "</div>";
+    echo "<a href='make_reservation.php' class='btn btn-secondary'>Try Again</a>";
+}
+echo "</div>";
+
+$stmt->close();
+?>
+--------------------------------------------------------
+--- END OF FILE: reservation.php ---
+
+--- START OF FILE: reserve.php ---
+--------------------------------------------------------
+<?php include 'header.php'; ?>
+
+<?php
+include 'db.php';
+
+if ($_SERVER["REQUEST_METHOD"] == "POST") {
+    $flight = $_POST['flight_number'];
+    $leg = (int)$_POST['leg_no'];
+    $date = $_POST['date'];
+    $airplane = $_POST['airplane_id'];
+    $seat = $_POST['seat_no'];
+    $name = $_POST['customer_name'];
+    $phone = $_POST['cphone'];
+
+    // Insert dependencies
+    $conn->query("INSERT IGNORE INTO Airport (Airport_code, Name, City, State)
+                  VALUES ('BLR', 'Kempegowda Intl', 'Bangalore', 'Karnataka'),
+                         ('DEL', 'Indira Gandhi Intl', 'Delhi', 'Delhi')");
+
+    $conn->query("INSERT IGNORE INTO Flight (Flight_number) VALUES ('$flight')");
+
+    $conn->query("INSERT IGNORE INTO Flight_Leg (Flight_number, Leg_no, Departure_airport_code, Arrival_airport_code)
+                  VALUES ('$flight', $leg, 'BLR', 'DEL')");
+
+    $conn->query("INSERT IGNORE INTO Airplane_Type (Type_name, Max_seats, Company)
+                  VALUES ('Airbus-A320', 180, 'Airbus')");
+
+    $conn->query("INSERT IGNORE INTO Airplane (Airplane_id, Total_no_of_seats, Type_name)
+                  VALUES ('$airplane', 180, 'Airbus-A320')");
+
+    $conn->query("INSERT IGNORE INTO Seat (Airplane_id, Seat_no) VALUES ('$airplane', '$seat')");
+
+    // Insert Leg_Instance if missing
+    $check = $conn->prepare("SELECT 1 FROM Leg_Instance WHERE Flight_number=? AND Leg_no=? AND Date=?");
+    $check->bind_param("sis", $flight, $leg, $date);
+    $check->execute();
+    $result = $check->get_result();
+
+    if ($result->num_rows === 0) {
+        $insert_leg = $conn->prepare("INSERT INTO Leg_Instance (
+            Flight_number, Leg_no, Date,
+            Number_of_available_seats, Airplane_id,
+            Departure_airport_code, Departure_time,
+            Arrival_airport_code, Arrival_time
+        ) VALUES (?, ?, ?, 100, ?, 'BLR', '10:00:00', 'DEL', '12:30:00')");
+        $insert_leg->bind_param("siss", $flight, $leg, $date, $airplane);
+        $insert_leg->execute();
+    }
+
+    // Insert Reservation
+    $stmt = $conn->prepare("INSERT INTO Reservation (
+        Flight_number, Leg_no, Date,
+        Airplane_id, Seat_no,
+        Customer_name, Cphone
+    ) VALUES (?, ?, ?, ?, ?, ?, ?)");
+    $stmt->bind_param("sisssss", $flight, $leg, $date, $airplane, $seat, $name, $phone);
+
+    if ($stmt->execute()) {
+        header("Location: reservation.php?status=success");
+        exit();
+    } else {
+        header("Location: reservation.php?status=error");
+        exit();
+    }
+}
+?>
+--------------------------------------------------------
+--- END OF FILE: reserve.php ---
+
+--- START OF FILE: sample.sql ---
+--------------------------------------------------------
+CREATE TABLE students (
+    student_id INT PRIMARY KEY AUTO_INCREMENT,
+    first_name VARCHAR(50),
+    last_name VARCHAR(50),
+    age INT,
+    grade VARCHAR(5),
+    email VARCHAR(100)
+);
+INSERT INTO students (first_name, last_name, age, grade, email)
+VALUES ('Rahul', 'Mehra', 18, '12A', 'rahul.mehra@example.com');
+INSERT INTO students (first_name, last_name, age, grade, email)
+VALUES
+('Ananya', 'Verma', 17, '11B', 'ananya.verma@example.com'),
+('Rohit', 'Patil', 18, '12C', 'rohit.patil@example.com'),
+('Sneha', 'Kumar', 17, '11A', 'sneha.kumar@example.com');
+SELECT * FROM students;
+--------------------------------------------------------
+--- END OF FILE: sample.sql ---
+
+--- START OF FILE: sample.txt ---
+--------------------------------------------------------
+CREATE TABLE students (
+    student_id INT PRIMARY KEY AUTO_INCREMENT,
+    first_name VARCHAR(50),
+    last_name VARCHAR(50),
+    age INT,
+    grade VARCHAR(5),
+    email VARCHAR(100)
+);
+INSERT INTO students (first_name, last_name, age, grade, email)
+VALUES ('Rahul', 'Mehra', 18, '12A', 'rahul.mehra@example.com');
+INSERT INTO students (first_name, last_name, age, grade, email)
+VALUES
+('Ananya', 'Verma', 17, '11B', 'ananya.verma@example.com'),
+('Rohit', 'Patil', 18, '12C', 'rohit.patil@example.com'),
+('Sneha', 'Kumar', 17, '11A', 'sneha.kumar@example.com');
+SELECT * FROM students;
+--------------------------------------------------------
+--- END OF FILE: sample.txt ---
+
+--- START OF FILE: signup.php ---
+--------------------------------------------------------
+<?php
+include 'db.php';
+session_start();
+
+$msg = "";
+if ($_SERVER["REQUEST_METHOD"] == "POST") {
+    $username = trim($_POST['username']);
+    $email = trim($_POST['email']);
+    $password = password_hash($_POST['password'], PASSWORD_DEFAULT);
+
+    $stmt = $conn->prepare("INSERT INTO users (username, email, password) VALUES (?, ?, ?)");
+    $stmt->bind_param("sss", $username, $email, $password);
+
+    if ($stmt->execute()) {
+        $msg = "<div class='alert alert-success'>✅ Registration successful! You can now <a href='login.php'>login</a>.</div>";
+    } else {
+        $msg = "<div class='alert alert-danger'>❌ Error: " . htmlspecialchars($conn->error) . "</div>";
+    }
+    $stmt->close();
+}
+?>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Signup | Airline System</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+</head>
+<body class="container mt-5">
+  <?php include 'header.php'; ?>
+  <div class="col-md-6 offset-md-3 mt-4">
+    <h2>✈️ Create Account</h2>
+    <?= $msg ?>
+    <form method="POST">
+      <input type="text" name="username" class="form-control mb-3" placeholder="Username" required>
+      <input type="email" name="email" class="form-control mb-3" placeholder="Email" required>
+      <input type="password" name="password" class="form-control mb-3" placeholder="Password" required>
+      <button type="submit" class="btn btn-primary w-100">Sign Up</button>
+    </form>
+    <p class="mt-3 text-center">Already have an account? <a href="login.php">Login</a></p>
+  </div>
+</body>
+</html>
+--------------------------------------------------------
+--- END OF FILE: signup.php ---
+
+--- START OF FILE: style.css ---
+--------------------------------------------------------
+/* =======================
+   Global Body
+======================= */
+body {
+  background: linear-gradient(135deg, #74ebd5 0%, #ACB6E5 100%);
+  font-family: 'Segoe UI', sans-serif;
+  min-height: 100vh;
+  margin: 0;
+  padding: 0;
+  color: #333;
+}
+
+/* =======================
+   Navbar Links
+======================= */
+.nav-link:hover {
+  background-color: #0d6efd;
+  color: #fff !important;
+  border-radius: 8px;
+  transition: 0.3s;
+}
+
+/* =======================
+   Cards
+======================= */
+.card {
+  border-radius: 12px;
+  box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+  transition: 0.3s;
+}
+.card:hover {
+  transform: translateY(-3px);
+}
+
+/* =======================
+   CRUD Panel Headings
+======================= */
+.crud-panel h4 {
+  margin-right: 15px;
+  color: #333;
+}
+
+/* =======================
+   Tables
+======================= */
+.table {
+  background-color: rgba(255, 255, 255, 0.95);
+  border-radius: 10px;
+  overflow: hidden;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+}
+.table th {
+  background: #667eea;
+  color: white;
+}
+.table tr:nth-child(even) {
+  background: rgba(102, 126, 234, 0.1);
+}
+
+/* =======================
+   Buttons
+======================= */
+.btn-primary {
+  background: linear-gradient(to right, #667eea, #764ba2);
+  border: none;
+  color: white;
+  transition: 0.3s;
+}
+.btn-primary:hover {
+  opacity: 0.9;
+}
+
+.btn-success {
+  background: linear-gradient(to right, #43e97b, #38f9d7);
+  border: none;
+  color: white;
+  transition: 0.3s;
+}
+.btn-success:hover {
+  opacity: 0.9;
+}
+
+/* =======================
+   Chat Container
+======================= */
+.chat-container {
+  background: rgba(255, 255, 255, 0.95);
+  border-radius: 15px;
+  box-shadow: 0 8px 20px rgba(0,0,0,0.2);
+  display: flex;
+  flex-direction: column;
+  height: 70vh;
+}
+
+.assistant-message {
+  background: linear-gradient(to right, #e0eafc, #cfdef3);
+  color: #333;
+  border-radius: 15px;
+  padding: 8px 12px;
+  margin-bottom: 10px;
+  max-width: 80%;
+}
+
+.user-message {
+  background: linear-gradient(to right, #667eea, #764ba2);
+  color: white;
+  border-radius: 15px;
+  padding: 8px 12px;
+  margin-bottom: 10px;
+  max-width: 80%;
+  margin-left: auto;
+}
+/* =======================
+   Animated Airplane
+======================= */
+.airplane {
+  position: fixed;
+  width: 80px;
+  top: 20%;
+  left: -100px; /* Start off-screen */
+  z-index: 1000;
+  animation: fly 15s linear infinite;
+}
+
+@keyframes fly {
+  0% {
+    transform: translateX(0) rotate(0deg);
+  }
+  50% {
+    transform: translateX(120vw) rotate(15deg); /* Fly across the screen */
+  }
+  100% {
+    transform: translateX(-10vw) rotate(0deg); /* Loop back */
+  }
+}
+--------------------------------------------------------
+--- END OF FILE: style.css ---
+
+--- START OF FILE: sum.java ---
+--------------------------------------------------------
+import java.util.Scanner
+public class Sum
+{
+  public static void main(String[] args)
+ {
+	Scanner input =new Scanner(System.in);
+	int num1=input.nextInt();
+	int num2=input.nextInt();
+	int sum=num1+num2;
+	System.out.println("Sum=" +sum);
+--------------------------------------------------------
+--- END OF FILE: sum.java ---
+
+--- START OF FILE: test_api.php ---
+--------------------------------------------------------
+<?php
+$key = "YOUR_GEMINI_API_KEY";
+$url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=$key";
+
+$payload = json_encode(["contents" => [[ "parts" => [["text" => "Hello Gemini"]] ]]]);
+$ch = curl_init($url);
+curl_setopt_array($ch, [
+    CURLOPT_RETURNTRANSFER => true,
+    CURLOPT_POST => true,
+    CURLOPT_HTTPHEADER => ["Content-Type: application/json"],
+    CURLOPT_POSTFIELDS => $payload,
+]);
+echo curl_exec($ch);
+curl_close($ch);
+?>
+--------------------------------------------------------
+--- END OF FILE: test_api.php ---
+
+--- START OF FILE: Untitled.txt ---
+--------------------------------------------------------
+
+Setting environment for using XAMPP for Windows.
+ganes_kxvl8b7@MAHESH c:\xampp
+# mysql -u root
+Welcome to the MariaDB monitor.  Commands end with ; or \g.
+Your MariaDB connection id is 10
+Server version: 10.4.32-MariaDB mariadb.org binary distribution
+
+Copyright (c) 2000, 2018, Oracle, MariaDB Corporation Ab and others.
+
+Type 'help;' or '\h' for help. Type '\c' to clear the current input statement.
+
+MariaDB [(none)]> show databases;
++--------------------+
+| Database           |
++--------------------+
+| airline            |
+| airline_project    |
+| information_schema |
+| library_db         |
+| movie_db           |
+| mysql              |
+| performance_schema |
+| phpmyadmin         |
+| test               |
++--------------------+
+9 rows in set (0.056 sec)
+
+MariaDB [(none)]> use airline;
+Database changed
+MariaDB [airline]> show tables;
++-------------------+
+| Tables_in_airline |
++-------------------+
+| airplane          |
+| airplane_type     |
+| airport           |
+| can_land          |
+| fare              |
+| flight            |
+| flight_leg        |
+| leg_instance      |
+| reservation       |
+| seat              |
++-------------------+
+10 rows in set (0.001 sec)
+
+MariaDB [airline]> SELECT Seat_no, COUNT(*) AS total_bookings
+    -> FROM Reservation
+    -> GROUP BY Seat_no
+    -> ORDER BY total_bookings DESC
+    -> LIMIT 1;
++---------+----------------+
+| Seat_no | total_bookings |
++---------+----------------+
+| 14C     |              3 |
++---------+----------------+
+1 row in set (0.001 sec)
+
+MariaDB [airline]> SELECT Flight_number, Date, COUNT(*) AS total_reservations
+    -> FROM Reservation
+    -> GROUP BY Flight_number, Date
+    -> HAVING COUNT(*) > 1;
+Empty set (0.002 sec)
+
+MariaDB [airline]> SELECT Customer_name, Seat_no, COUNT(DISTINCT Flight_number) AS flights_with_same_seat
+    -> FROM Reservation
+    -> GROUP BY Customer_name, Seat_no
+    -> HAVING COUNT(DISTINCT Flight_number) > 1;
++---------------+---------+------------------------+
+| Customer_name | Seat_no | flights_with_same_seat |
++---------------+---------+------------------------+
+| MAHES         | 14C     |                      3 |
++---------------+---------+------------------------+
+1 row in set (0.001 sec)
+
+MariaDB [airline]> SELECT Flight_number, Leg_no, Date, Seat_no, Customer_name, COUNT(*) AS duplicates
+    -> FROM Reservation
+    -> GROUP BY Flight_number, Leg_no, Date, Seat_no, Customer_name
+    -> HAVING COUNT(*) > 1;
+Empty set (0.001 sec)
+
+MariaDB [airline]> SELECT A.Type_name, COUNT(*) AS total_reservations
+    -> FROM Reservation R
+    -> JOIN Airplane A ON R.Airplane_id = A.Airplane_id
+    -> GROUP BY A.Type_name
+    -> ORDER BY total_reservations DESC;
++-------------+--------------------+
+| Type_name   | total_reservations |
++-------------+--------------------+
+| Airbus-A320 |                  5 |
++-------------+--------------------+
+1 row in set (0.011 sec)
+
+MariaDB [airline]>
+--------------------------------------------------------
+--- END OF FILE: Untitled.txt ---
+
+--- START OF FILE: update_cell.php ---
+--------------------------------------------------------
+<?php
+include 'db.php';
+
+if (!isset($_POST['table'], $_POST['column'], $_POST['newValue'], $_POST['pkCol'], $_POST['pkVal'])) {
+    echo "missing parameters";
+    exit;
+}
+
+$table = $_POST['table'];
+$column = $_POST['column'];
+$newValue = $_POST['newValue'];
+$pkCol = $_POST['pkCol'];
+$pkVal = $_POST['pkVal'];
+
+// Escape identifiers safely
+$table = preg_replace('/[^a-zA-Z0-9_]/', '', $table);
+$column = preg_replace('/[^a-zA-Z0-9_]/', '', $column);
+$pkCol = preg_replace('/[^a-zA-Z0-9_]/', '', $pkCol);
+
+// Prepare dynamic update query safely
+$stmt = $conn->prepare("UPDATE `$table` SET `$column` = ? WHERE `$pkCol` = ?");
+if(!$stmt){
+    echo "prepare error: " . $conn->error;
+    exit;
+}
+$stmt->bind_param("ss", $newValue, $pkVal);
+
+if ($stmt->execute()) {
+    echo "success";
+} else {
+    echo "error: " . $conn->error;
+}
+$stmt->close();
+?>
+--------------------------------------------------------
+--- END OF FILE: update_cell.php ---
+
+--- START OF FILE: view_reservations.php ---
+--------------------------------------------------------
+<?php include 'header.php'; ?>
+
+<?php
+include 'db.php';
+$result = $conn->query("SELECT * FROM Reservation");
+?>
+<!DOCTYPE html>
+<html>
+<head>
+<link rel="stylesheet" href="style.css">
+
+    <title>View Reservations</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+</head>
+<body class="container mt-5">
+    <h2>📋 Current Reservations</h2>
+
+    <?php if (isset($_GET['status']) && $_GET['status'] == 'deleted'): ?>
+        <div class="alert alert-success">✅ Reservation cancelled successfully!</div>
+    <?php elseif (isset($_GET['status']) && $_GET['status'] == 'error'): ?>
+        <div class="alert alert-danger">❌ Cancellation failed. Please try again.</div>
+    <?php endif; ?>
+
+    <table class="table table-bordered table-striped">
+        <thead>
+            <tr>
+                <th>Flight</th>
+                <th>Leg</th>
+                <th>Date</th>
+                <th>Airplane</th>
+                <th>Seat</th>
+                <th>Name</th>
+                <th>Phone</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+        <tbody>
+            <?php
+            if ($result->num_rows > 0) {
+                while ($row = $result->fetch_assoc()) {
+                    echo "<tr>
+                        <td>{$row['Flight_number']}</td>
+                        <td>{$row['Leg_no']}</td>
+                        <td>{$row['Date']}</td>
+                        <td>{$row['Airplane_id']}</td>
+                        <td>{$row['Seat_no']}</td>
+                        <td>{$row['Customer_name']}</td>
+                        <td>{$row['Cphone']}</td>
+                        <td>
+                            <form method='POST' action='cancel_reservation.php'>
+                                <input type='hidden' name='flight_number' value='{$row['Flight_number']}'>
+                                <input type='hidden' name='leg_no' value='{$row['Leg_no']}'>
+                                <input type='hidden' name='date' value='{$row['Date']}'>
+                                <input type='hidden' name='seat_no' value='{$row['Seat_no']}'>
+                                <button type='submit' class='btn btn-danger btn-sm'>Cancel</button>
+                            </form>
+                        </td>
+                    </tr>";
+                }
+            } else {
+                echo "<tr><td colspan='8'>No reservations found.</td></tr>";
+            }
+            ?>
+        </tbody>
+    </table>
+
+    <a href="make_reservation.php" class="btn btn-primary">Make Another Reservation</a>
+
+</body>
+</html>
+--------------------------------------------------------
+--- END OF FILE: view_reservations.php ---
+
+
+
+--- END FILE: code_appendix.txt ---
+
+
+--- START FILE: complex_queries.php ---
+
+<?php include 'db.php'; include 'header.php'; ?>
+<!DOCTYPE html>
+<html>
+<head>
+	<link rel="stylesheet" href="style.css">
+
+  <title>Reports - Complex Queries</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+</head>
+<body class="container mt-5">
+  <h2>📈 Airline Reports & Analytics</h2>
+
+  <?php
+  // 1️⃣ JOIN — Flight details with Airplane type
+  echo "<h4 class='mt-4 text-primary'>1. Flight and Airplane Type Details (JOIN)</h4>";
+  $q1 = "SELECT f.Flight_number, a.Airplane_id, t.Type_name, t.Company
+         FROM leg_instance li
+         JOIN airplane a ON li.Airplane_id = a.Airplane_id
+         JOIN airplane_type t ON a.Type_name = t.Type_name
+         JOIN flight f ON li.Flight_number = f.Flight_number
+         LIMIT 10";
+  $r1 = $conn->query($q1);
+  if ($r1->num_rows > 0) {
+      echo "<table class='table table-bordered table-striped'><tr>";
+      while ($field = $r1->fetch_field()) echo "<th>{$field->name}</th>";
+      echo "</tr>";
+      while ($row = $r1->fetch_assoc()) {
+          echo "<tr>";
+          foreach ($row as $val) echo "<td>$val</td>";
+          echo "</tr>";
+      }
+      echo "</table>";
+  }
+
+  // 2️⃣ UNION — Flights either from Air India or SpiceJet
+  echo "<h4 class='mt-4 text-primary'>2. Flights from Air India or SpiceJet (UNION)</h4>";
+  $q2 = "(SELECT Flight_number, Airline FROM flight WHERE Airline='Air India')
+         UNION
+         (SELECT Flight_number, Airline FROM flight WHERE Airline='SpiceJet')";
+  $r2 = $conn->query($q2);
+  if ($r2->num_rows > 0) {
+      echo "<table class='table table-bordered table-striped'><tr>";
+      while ($field = $r2->fetch_field()) echo "<th>{$field->name}</th>";
+      echo "</tr>";
+      while ($row = $r2->fetch_assoc()) {
+          echo "<tr>";
+          foreach ($row as $val) echo "<td>$val</td>";
+          echo "</tr>";
+      }
+      echo "</table>";
+  }
+
+  // 3️⃣ GROUP BY — Count reservations per customer
+  echo "<h4 class='mt-4 text-primary'>3. Reservations per Customer (GROUP BY)</h4>";
+  $q3 = "SELECT Customer_name, COUNT(*) AS total_reservations FROM reservation GROUP BY Customer_name";
+  $r3 = $conn->query($q3);
+  if ($r3->num_rows > 0) {
+      echo "<table class='table table-bordered table-striped'><tr>";
+      while ($field = $r3->fetch_field()) echo "<th>{$field->name}</th>";
+      echo "</tr>";
+      while ($row = $r3->fetch_assoc()) {
+          echo "<tr>";
+          foreach ($row as $val) echo "<td>$val</td>";
+          echo "</tr>";
+      }
+      echo "</table>";
+  }
+
+  // 4️⃣ SUBQUERY — Flights with more than one leg
+  echo "<h4 class='mt-4 text-primary'>4. Flights with Multiple Legs (SUBQUERY)</h4>";
+  $q4 = "SELECT Flight_number FROM flight_leg 
+         WHERE Flight_number IN (SELECT Flight_number FROM flight_leg GROUP BY Flight_number HAVING COUNT(*) > 1)";
+  $r4 = $conn->query($q4);
+  if ($r4->num_rows > 0) {
+      echo "<table class='table table-bordered table-striped'><tr><th>Flight_number</th></tr>";
+      while ($row = $r4->fetch_assoc()) echo "<tr><td>{$row['Flight_number']}</td></tr>";
+      echo "</table>";
+  }
+  ?>
+</body>
+</html>
+
+
+--- END FILE: complex_queries.php ---
+
+
+--- START FILE: config.php ---
+
+<?php
+// =========================
+// DATABASE CONFIG
+// =========================
+define("DB_SERVER", "localhost");
+define("DB_USERNAME", "root");
+define("DB_PASSWORD", "");
+define("DB_NAME", "airline_reservation");
+
+// =========================
+// OLLAMA CONFIG
+// =========================
+define("OLLAMA_HOST", "http://127.0.0.1:11434");  // default Ollama address
+define("OLLAMA_MODEL", "llama3.2:latest");        // the model you pulled
+?>
+
+
+--- END FILE: config.php ---
+
+
+--- START FILE: db.php ---
+
+<?php
+$servername = "localhost";
+$username = "root";
+$password = "";
+$dbname = "airline"; // ✅ must match your actual DB name
+
+$conn = new mysqli($servername, $username, $password, $dbname);
+
+if ($conn->connect_error) {
+  die("❌ Connection failed: " . $conn->connect_error);
+}
+?>
+
+
+--- END FILE: db.php ---
+
+
+--- START FILE: global-styles.css ---
+
+/*
+ * ======================================
+ * GLOBAL STYLES - MODERN FLIGHT THEME
+ * (Linked in header.php for all pages)
+ * ======================================
+ */
+
+/* =======================
+   Global Body
+======================= */
+body, html {
+    /* Ensure full page coverage for gradients */
+    min-height: 100vh;
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    
+    /* User's Gradient */
+    background: linear-gradient(135deg, #74ebd5 0%, #ACB6E5 100%);
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    color: #333;
+    position: relative;
+    background-attachment: fixed;
+}
+
+/* =======================
+   Navbar Links
+======================= */
+.nav-link:hover {
+    background-color: #0d6efd;
+    color: #fff !important;
+    border-radius: 8px;
+    transition: 0.3s;
+}
+
+/* =======================
+   Cards & Content Containers
+======================= */
+.card, .glass-box {
+    border-radius: 12px;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+    transition: 0.3s;
+    border: none;
+    /* Use semi-transparent white for a clean, frosted look */
+    background-color: rgba(255, 255, 255, 0.95);
+}
+.card:hover {
+    transform: translateY(-3px);
+}
+
+/* =======================
+   CRUD Panel Headings
+======================= */
+.crud-panel h4 {
+    margin-right: 15px;
+    color: #333;
+    font-weight: 600;
+}
+
+/* =======================
+   Tables
+======================= */
+.table {
+    background-color: rgba(255, 255, 255, 0.95);
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+}
+.table th {
+    /* Uses the primary gradient for headers */
+    background: linear-gradient(to right, #667eea, #764ba2);
+    color: white;
+    vertical-align: middle;
+}
+.table tr:nth-child(even) {
+    background: rgba(102, 126, 234, 0.1);
+}
+
+/* =======================
+   Buttons (Primary CTA)
+======================= */
+.btn-primary, .btn-primary-cta {
+    background: linear-gradient(to right, #667eea, #764ba2);
+    border: none;
+    color: white;
+    transition: 0.3s;
+    font-weight: 600;
+    border-radius: 8px;
+}
+.btn-primary:hover, .btn-primary-cta:hover {
+    opacity: 0.9;
+    box-shadow: 0 4px 10px rgba(118, 75, 162, 0.4);
+}
+
+.btn-success {
+    background: linear-gradient(to right, #43e97b, #38f9d7);
+    border: none;
+    color: white;
+    transition: 0.3s;
+    font-weight: 600;
+    border-radius: 8px;
+}
+.btn-success:hover {
+    opacity: 0.9;
+    box-shadow: 0 4px 10px rgba(56, 249, 215, 0.4);
+}
+
+/* =======================
+   Chat Container
+======================= */
+.chat-container {
+    background: rgba(255, 255, 255, 0.95);
+    border-radius: 15px;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.2);
+    display: flex;
+    flex-direction: column;
+    height: 70vh;
+}
+.chat-messages {
+    flex-grow: 1;
+    overflow-y: auto;
+    padding: 20px;
+}
+
+.assistant-message {
+    background: linear-gradient(to right, #e0eafc, #cfdef3);
+    color: #333;
+    border-radius: 15px 15px 15px 0;
+    padding: 8px 12px;
+    margin-bottom: 10px;
+    max-width: 80%;
+}
+
+.user-message {
+    background: linear-gradient(to right, #667eea, #764ba2);
+    color: white;
+    border-radius: 15px 15px 0 15px;
+    padding: 8px 12px;
+    margin-bottom: 10px;
+    max-width: 80%;
+    margin-left: auto;
+}
+
+/* =======================
+   Animated Airplane (Background Element)
+======================= */
+.airplane {
+    position: fixed;
+    width: 80px;
+    top: 20%;
+    left: -100px; /* Start off-screen */
+    z-index: 1000;
+    animation: fly 15s linear infinite;
+}
+
+@keyframes fly {
+    0% {
+        transform: translateX(0) rotate(0deg);
+    }
+    50% {
+        transform: translateX(120vw) rotate(15deg); /* Fly across the screen */
+    }
+    100% {
+        transform: translateX(-10vw) rotate(0deg); /* Loop back */
+    }
+}
+
+--- END FILE: global-styles.css ---
+
+
+--- START FILE: header.php ---
+
+<?php
+// Path: /header.php
+
+// ✅ Session Handling at the very top
+if (session_status() === PHP_SESSION_NONE) session_start();
+
+// ⚠️ IMPORTANT: Include the database connection file here if it's needed globally
+// (This is good practice if navigation/login status relies on database calls elsewhere)
+// include 'db.php'; 
+?>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>✈️ Airline System</title>
+
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    
+    <link rel="stylesheet" href="global-styles.css">
+
+    <style>
+        /*
+         * Note: The body and navbar link styles were moved to global-styles.css.
+         * Only AI chat specific styles remain here.
+         */
+        #aiChatBox { 
+            display: none; 
+            flex-direction: column; 
+            position: fixed; 
+            bottom: 80px; 
+            right: 25px; 
+            width: 360px; 
+            height: 460px; 
+            background: white; 
+            border-radius: 12px; 
+            border: 1px solid #ccc; 
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2); 
+            resize: both; 
+            overflow: hidden; 
+            min-width: 260px; 
+            min-height: 300px; 
+            max-width: 800px; 
+            max-height: 700px; 
+            z-index: 9999; 
+        }
+        #aiChatHeader { 
+            /* Uses the primary gradient color for the header */
+            background: linear-gradient(to right, #667eea, #764ba2); 
+            color: white; 
+            padding: 10px 12px; 
+            font-weight: bold; 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+            cursor: move; 
+        }
+        #aiChatBody { 
+            flex: 1; 
+            padding: 10px; 
+            overflow-y: auto; 
+            background: #f8f9fa; 
+            font-size: 14px; 
+        }
+        /* Uses global user/assistant message styles from global-styles.css */
+        .ai-msg, .user-msg { margin: 6px 0; padding: 8px 10px; border-radius: 10px; max-width: 90%; word-wrap: break-word; }
+        .ai-msg { background: #e9ecef; text-align: left; }
+        .user-msg { background: #cfe2ff; text-align: right; margin-left: auto; }
+
+        #aiChatInput { 
+            display: flex; 
+            border-top: 1px solid #ccc; 
+        }
+        #aiInput { 
+            flex: 1; 
+            border: none; 
+            padding: 8px; 
+            outline: none; 
+        }
+        #aiSend { 
+            /* Uses the primary gradient color for the send button */
+            border: none; 
+            background: linear-gradient(to right, #667eea, #764ba2); 
+            color: white; 
+            padding: 8px 12px; 
+            cursor: pointer; 
+        }
+        #aiSend:hover { 
+            opacity: 0.9;
+        }
+    </style>
+</head>
+<body>
+
+<?php include __DIR__ . '/background_elements.php'; ?>
+<nav class="navbar navbar-expand-lg card" style="position: sticky; top: 10px; z-index: 100; margin: 10px 20px;">
+    <div class="container-fluid">
+        <a class="navbar-brand fw-bold" href="index.php" style="color: #667eea;">✈️ Airline System</a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"><span class="navbar-toggler-icon"></span></button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav ms-auto align-items-center">
+    <?php if (isset($_SESSION['user'])): ?>
+        <li class="nav-item"><a class="nav-link" href="index.php">🏠 Home</a></li>
+        <li class="nav-item"><a class="nav-link" href="make_reservation.php">➕ Book</a></li>
+        <li class="nav-item"><a class="nav-link" href="view_reservations.php">📋 View</a></li>
+        <li class="nav-item"><a class="nav-link" href="cancel_reservation.php">❌ Cancel</a></li>
+        <li class="nav-item"><a class="nav-link" href="all_tables.php">📊 Tables</a></li>
+        <li class="nav-item"><a class="nav-link" href="query_executor.php">🧠 SQL</a></li>
+
+        <!-- ✅ Show Admin Link only for admin -->
+        <?php if (isset($_SESSION['email']) && $_SESSION['email'] === 'admin@airline.com'): ?>
+            <li class="nav-item"><a class="nav-link text-warning fw-bold" href="admin_dashboard.php">⚙️ Admin</a></li>
+        <?php endif; ?>
+
+        <li class="nav-item">
+            <button id="aiBtn" class="btn btn-primary btn-sm ms-2">💬 AI Assistant</button>
+        </li>
+
+        <li class="nav-item">
+            <span class="nav-link fw-semibold" style="color:#764ba2;">
+                👤 <?= htmlspecialchars($_SESSION['user']['Cname'] ?? 'User'); ?>
+            </span>
+        </li>
+        <li class="nav-item"><a class="nav-link text-danger" href="logout.php">🚪 Logout</a></li>
+
+    <?php else: ?>
+        <li class="nav-item"><a class="nav-link" href="login.php">Login</a></li>
+        <li class="nav-item"><a class="nav-link" href="signup.php">Sign Up</a></li>
+    <?php endif; ?>
+</ul>
+
+        </div>
+    </div>
+</nav>
+
+<div id="aiChatBox">
+    <div id="aiChatHeader">🤖 Airline Assistant <span id="aiClose" style="cursor:pointer;">❌</span></div>
+    <div id="aiChatBody"><div class="ai-msg">👋 Hello! I'm your Airline Assistant. Ask about flights or reservations!</div></div>
+    <div id="aiChatInput">
+        <input type="text" id="aiInput" placeholder="Type your question...">
+        <button id="aiSend">Send</button>
+    </div>
+</div>
+
+<script>
+// --- DOM Elements
+const aiBtn = document.getElementById("aiBtn");
+const aiBox = document.getElementById("aiChatBox");
+const aiClose = document.getElementById("aiClose");
+const aiInput = document.getElementById("aiInput");
+const aiSend = document.getElementById("aiSend");
+const aiBody = document.getElementById("aiChatBody");
+const aiHeader = document.getElementById("aiChatHeader");
+
+// ✅ Show / Hide Chat
+aiBtn?.addEventListener("click", () => aiBox.style.display = "flex");
+aiClose?.addEventListener("click", () => aiBox.style.display = "none");
+
+// ✅ Send Message
+aiSend.addEventListener("click", sendMessage);
+aiInput.addEventListener("keypress", (e) => { if (e.key === "Enter") sendMessage(); });
+
+async function sendMessage() {
+    const text = aiInput.value.trim();
+    if (!text) return;
+    aiBody.innerHTML += `<div class='user-msg'>${text}</div>`;
+    aiInput.value = "";
+    aiBody.scrollTop = aiBody.scrollHeight;
+
+    try {
+        const res = await fetch("ai_assistant_api.php", {
+            method: "POST",
+            headers: {"Content-Type": "application/json"},
+            body: JSON.stringify({prompt: text})
+        });
+
+        // ✅ Safely parse JSON
+        let data;
+        try { data = await res.json(); } 
+        catch(err) { data = {reply: "⚠️ Error: Invalid response from server"}; }
+
+        aiBody.innerHTML += `<div class='ai-msg'>${data.reply}</div>`;
+    } catch (err) {
+        aiBody.innerHTML += `<div class='ai-msg text-danger'>⚠️ Error: ${err.message}</div>`;
+    }
+
+    aiBody.scrollTop = aiBody.scrollHeight;
+}
+
+// ✅ Drag functionality
+let isDragging = false, offsetX, offsetY;
+aiHeader.addEventListener("mousedown", e => {
+    isDragging = true;
+    const rect = aiBox.getBoundingClientRect();
+    offsetX = e.clientX - rect.left;
+    offsetY = e.clientY - rect.top;
+});
+document.addEventListener("mousemove", e => {
+    if (!isDragging) return;
+    // Keep the box within window bounds (optional)
+    let newLeft = e.clientX - offsetX;
+    let newTop = e.clientY - offsetY;
+    
+    aiBox.style.left = `${newLeft}px`;
+    aiBox.style.top = `${newTop}px`;
+});
+document.addEventListener("mouseup", () => isDragging = false);
+</script>
+
+--- END FILE: header.php ---
+
+
+--- START FILE: index.php ---
+
+<?php
+if (session_status() === PHP_SESSION_NONE) session_start();
+include 'header.php';
+?>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>✈️ Airline System - Home</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+
+  <style>
+    /* 🌤️ Sky Background Animation */
+    @keyframes skyGradient {
+      0% { background: linear-gradient(to bottom, #a1c4fd, #c2e9fb); }
+      50% { background: linear-gradient(to bottom, #89f7fe, #66a6ff); }
+      100% { background: linear-gradient(to bottom, #a1c4fd, #c2e9fb); }
+    }
+
+    html, body {
+      margin: 0;
+      padding: 0;
+      height: 100vh;
+      overflow: hidden;
+      font-family: 'Poppins', sans-serif;
+      animation: skyGradient 40s ease-in-out infinite;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      position: relative;
+      color: #fff;
+    }
+
+    /* ☁️ Cloud Layers */
+    .cloud-layer {
+      position: absolute;
+      width: 3500%;
+      height: 100%;
+      top: 0;
+      left: -50%;
+      background: url('images/cloud.png') repeat-x;
+      background-size: contain;
+      opacity: 0.4;
+      animation: moveClouds 180s linear infinite;
+    }
+
+    .cloud-layer:nth-child(1) { top: 10%; opacity: 0.55; animation-duration: 140s; }
+    .cloud-layer:nth-child(2) { top: 40%; opacity: 0.4; animation-duration: 160s; }
+    .cloud-layer:nth-child(3) { top: 70%; opacity: 0.3; animation-duration: 200s; }
+
+    @keyframes moveClouds {
+      from { background-position-x: 0; }
+      to { background-position-x: 10000px; }
+    }
+
+    /* ✈️ Plane Flying Inside Clouds */
+    .plane {
+      position: absolute;
+      width: 1500px;
+	height:1300px;
+      top: -10%;
+      left: -30px;
+      z-index: 1;
+      opacity: 0.8;
+      animation: flyPlane 5555s ease-in-out infinite;
+      filter: drop-shadow(0 8px 12px rgba(0,0,0,0.3));
+    }
+
+    @keyframes flyPlane {
+      0% { transform: translate(0, 0) rotate(3deg); opacity: 0.8; }
+      25% { transform: translate(50vw, -8vh) rotate(-2deg); opacity: 0.9; }
+      50% { transform: translate(110vw, 5vh) rotate(3deg); opacity: 0.85; }
+      75% { transform: translate(55vw, 10vh) rotate(-1deg); opacity: 0.9; }
+      100% { transform: translate(-400px, 0) rotate(3deg); opacity: 0.8; }
+    }
+
+    /* 💎 Glass Welcome Card */
+    .glass-card {
+      position: relative;
+      z-index: 5;
+      background: rgba(255, 255, 255, 0.15);
+      backdrop-filter: blur(12px);
+      border-radius: 20px;
+      padding: 40px 60px;
+      box-shadow: 0 8px 32px rgba(31, 38, 135, 0.37);
+      max-width: 700px;
+      text-align: center;
+      color: #0d47a1;
+      animation: fadeIn 2s ease;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(50px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    h1 {
+      font-size: 3rem;
+      font-weight: 700;
+      margin-bottom: 20px;
+      color: #0d47a1;
+    }
+
+    p {
+      font-size: 1.15rem;
+      color: #1a237e;
+      margin-bottom: 30px;
+    }
+
+    .btn-custom {
+      background: linear-gradient(90deg, #1e3c72, #2a5298);
+      color: #fff;
+      font-weight: 600;
+      border-radius: 8px;
+      padding: 10px 25px;
+      transition: all 0.3s ease;
+      border: none;
+    }
+
+    .btn-custom:hover {
+      transform: scale(1.05);
+      background: linear-gradient(90deg, #2a5298, #1e3c72);
+    }
+
+    .btn-outline-primary {
+      color: #1a237e;
+      border: 2px solid #1a237e;
+      font-weight: 600;
+      border-radius: 8px;
+      padding: 10px 25px;
+      background: rgba(255,255,255,0.3);
+      transition: all 0.3s ease;
+    }
+
+    .btn-outline-primary:hover {
+      background: #1a237e;
+      color: #fff;
+      transform: scale(1.05);
+    }
+
+    @media (max-width: 768px) {
+      h1 { font-size: 2rem; }
+      .glass-card { padding: 25px 20px; width: 90%; }
+      .plane { width: 200px; top: 50%; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ☁️ Background Layers -->
+  <div class="cloud-layer"></div>
+  <div class="cloud-layer"></div>
+  <div class="cloud-layer"></div>
+
+  <!-- ✈️ Plane inside clouds -->
+  <img src="images/airplane.png" alt="airplane" class="plane">
+
+  <!-- 💎 Welcome Section -->
+  <div class="glass-card">
+    <h1>Welcome to Airline Reservation System</h1>
+    <p>
+      Seamlessly manage your journey — Book, View, Cancel, or Explore flight data.  
+      Let the AI assistant guide you through your travel management.
+    </p>
+    <?php if (!empty($_SESSION['user'])): ?>
+      <a href="make_reservation.php" class="btn btn-custom me-2">✈️ Book Flight</a>
+      <a href="view_reservations.php" class="btn btn-outline-primary">📋 View Reservations</a>
+    <?php else: ?>
+      <a href="login.php" class="btn btn-custom me-2">🔐 Login</a>
+      <a href="signup.php" class="btn btn-outline-primary">🆕 Sign Up</a>
+    <?php endif; ?>
+  </div>
+
+</body>
+</html>
+
+
+--- END FILE: index.php ---
+
+
+--- START FILE: insert_row.php ---
+
+<?php
+include 'db.php';
+
+if (!isset($_POST['action'])) {
+    echo "invalid request";
+    exit;
+}
+
+// 🧱 STEP 1: Fetch column names for modal form
+if ($_POST['action'] === 'get_columns') {
+    $table = preg_replace('/[^a-zA-Z0-9_]/', '', $_POST['table']);
+    $res = $conn->query("SHOW COLUMNS FROM `$table`");
+    if ($res->num_rows > 0) {
+        echo "<input type='hidden' name='table' value='$table'>";
+        echo "<input type='hidden' name='action' value='insert_row'>";
+        while ($col = $res->fetch_assoc()) {
+            $name = htmlspecialchars($col['Field']);
+            echo "
+              <div class='mb-3'>
+                <label class='form-label'>$name</label>
+                <input type='text' class='form-control' name='cols[$name]' placeholder='Enter $name'>
+              </div>
+            ";
+        }
+    } else {
+        echo "<p>No columns found for this table.</p>";
+    }
+    exit;
+}
+
+// 🧩 STEP 2: Insert new row
+if ($_POST['action'] === 'insert_row') {
+    $table = preg_replace('/[^a-zA-Z0-9_]/', '', $_POST['table']);
+    $cols = $_POST['cols'] ?? [];
+    if (empty($cols)) {
+        echo "No data to insert.";
+        exit;
+    }
+
+    $columns = array_keys($cols);
+    $values = array_values($cols);
+
+    $colList = implode("`,`", $columns);
+    $placeholders = rtrim(str_repeat('?,', count($values)), ',');
+
+    $stmt = $conn->prepare("INSERT INTO `$table` (`$colList`) VALUES ($placeholders)");
+    $types = str_repeat('s', count($values));
+    $stmt->bind_param($types, ...$values);
+
+    if ($stmt->execute()) {
+        echo "✅ Row inserted successfully!";
+    } else {
+        echo "❌ Insert failed: " . $conn->error;
+    }
+    exit;
+}
+?>
+
+
+--- END FILE: insert_row.php ---
+
+
+--- START FILE: login.php ---
+
+<?php
+session_start();
+include 'db.php';
+
+$error = "";
+
+if ($_SERVER["REQUEST_METHOD"] == "POST") {
+  $email = trim($_POST['email']);
+  $password = $_POST['password'];
+
+  $stmt = $conn->prepare("SELECT * FROM users WHERE email = ?");
+  $stmt->bind_param("s", $email);
+  $stmt->execute();
+  $result = $stmt->get_result();
+
+  if ($row = $result->fetch_assoc()) {
+    if (password_verify($password, $row['password'])) {
+      $_SESSION['email'] = $row['email'];
+      $_SESSION['user'] = $row['username'];
+      header("Location: index.php");
+      exit();
+    } else {
+      $error = "❌ Invalid password.";
+    }
+  } else {
+    $error = "❌ Email not found.";
+  }
+}
+?>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>✈️ Airline System Login</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+  <style>
+    html, body {
+      height: 100%;
+      margin: 0;
+      overflow: hidden;
+      font-family: 'Poppins', sans-serif;
+      background: linear-gradient(to bottom, #90caf9, #e3f2fd);
+      position: relative;
+    }
+
+    /* ☁️ Clouds */
+    .cloud {
+      position: absolute;
+      opacity: 0.85;
+      animation: moveClouds linear infinite;
+      filter: brightness(1.1);
+    }
+
+    .cloud:nth-child(1) { top: 10%; left: -300px; width: 250px; animation-duration: 70s; }
+    .cloud:nth-child(2) { top: 40%; left: -400px; width: 280px; animation-duration: 90s; animation-delay: 10s; }
+    .cloud:nth-child(3) { top: 70%; left: -350px; width: 230px; animation-duration: 100s; animation-delay: 25s; }
+
+    @keyframes moveClouds {
+      from { transform: translateX(0); }
+      to { transform: translateX(130vw); }
+    }
+
+    /* ✈️ Plane Animation */
+    .plane {
+      position: absolute;
+      width: 2200px;
+	height:1000px;
+      top: -10%;
+      left: -250px;
+      opacity: 0.9;
+      z-index: 2;
+      filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));
+      animation: flyInClouds 400s ease-in-out infinite;
+    }
+
+    @keyframes flyInClouds {
+      0% { transform: translate(0, 0) rotate(3deg); opacity: 0.9; }
+      50% { transform: translate(110vw, -6vh) rotate(-5deg); opacity: 0.7; }
+      100% { transform: translate(220vw, 5vh) rotate(4deg); opacity: 0.9; }
+    }
+
+    /* 🌟 Login Card */
+    .login-card {
+      position: relative;
+      z-index: 5;
+      background: rgba(255,255,255,0.15);
+      backdrop-filter: blur(15px);
+      border-radius: 20px;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.25);
+      padding: 40px;
+      max-width: 420px;
+      color: #0d47a1;
+    }
+
+    .btn-login {
+      background: #0d47a1;
+      color: #fff;
+      font-weight: 600;
+      transition: all 0.3s ease;
+    }
+    .btn-login:hover {
+      background: #1565c0;
+      transform: scale(1.05);
+    }
+  </style>
+</head>
+<body>
+  <!-- ☁️ Animated Background -->
+  <img src="images/cloud.png" alt="cloud" class="cloud">
+  <img src="images/cloud.png" alt="cloud" class="cloud">
+  <img src="images/cloud.png" alt="cloud" class="cloud">
+  <img src="images/airplane.png" alt="airplane" class="plane">
+
+  <!-- 🌤️ Centered Login Form -->
+  <div class="d-flex justify-content-center align-items-center vh-100">
+    <div class="login-card text-center">
+      <h2 class="mb-4">✈️ Airline System Login</h2>
+      <?php if (!empty($error)): ?>
+        <div class="alert alert-danger"><?= htmlspecialchars($error) ?></div>
+      <?php endif; ?>
+      <form method="POST">
+        <input type="email" name="email" class="form-control mb-3" placeholder="Email" required>
+        <input type="password" name="password" class="form-control mb-3" placeholder="Password" required>
+        <button type="submit" class="btn btn-login w-100">Login</button>
+      </form>
+      <div class="mt-3">
+        <a href="signup.php" class="btn btn-outline-primary btn-sm">🆕 Sign Up</a>
+      </div>
+    </div>
+  </div>
+</body>
+</html>
+
+
+--- END FILE: login.php ---
+
+
+--- START FILE: logout.php ---
+
+<?php
+session_start();
+session_destroy();
+header("Location: login.php");
+exit();
+?>
+
+
+--- END FILE: logout.php ---
+
+
+--- START FILE: make_reservation.php ---
+
+<?php
+include 'header.php';
+include 'db.php';
+//session_start();
+
+// 🔒 Ensure user is logged in
+if (!isset($_SESSION['user']) || !isset($_SESSION['email'])) {
+  header("Location: login.php");
+  exit();
+}
+
+$username = $_SESSION['user'];
+$email = $_SESSION['email'];
+
+// ✅ Fetch available Flights, Airplanes, Seats
+$flights = $conn->query("SELECT Flight_number FROM flight");
+$airplanes = $conn->query("SELECT Airplane_id FROM airplane");
+$seats = $conn->query("SELECT Seat_no FROM seat");
+?>
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>✈️ Make a Reservation</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+  <style>
+    /* 🌈 Sky Gradient Animation */
+    @keyframes skyMove {
+      0% { background: linear-gradient(to bottom, #a1c4fd, #c2e9fb); }
+      50% { background: linear-gradient(to bottom, #89f7fe, #66a6ff); }
+      100% { background: linear-gradient(to bottom, #a1c4fd, #c2e9fb); }
+    }
+
+    body {
+      margin: 0;
+      height: 100vh;
+      overflow: hidden;
+      animation: skyMove 40s ease-in-out infinite;
+      font-family: 'Poppins', sans-serif;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      position: relative;
+    }
+
+    /* ☁️ Cloud Layers */
+    .cloud-layer {
+      position: absolute;
+      width: 150%;
+      height: 100%;
+      left: -25%;
+      background: url('images/cloud.png') repeat-x;
+      background-size: contain;
+      opacity: 0.4;
+      animation: drift 120s linear infinite;
+    }
+
+    .cloud-layer:nth-child(1) { opacity: 0.5; top: 10%; animation-duration: 100s; }
+    .cloud-layer:nth-child(2) { opacity: 0.35; top: 30%; animation-duration: 140s; }
+    .cloud-layer:nth-child(3) { opacity: 0.25; top: 60%; animation-duration: 180s; }
+
+    @keyframes drift {
+      from { background-position-x: 0; }
+      to { background-position-x: 10000px; }
+    }
+
+    /* ✈️ Plane Floating */
+    .plane {
+      position: absolute;
+      width: 2600px;
+      top: 45%;
+      left: 50%;
+      transform: translate(-50%, -50%) rotate(-3deg);
+      opacity: 0.7;
+      animation: floatPlane 55s ease-in-out infinite;
+      z-index: 3;
+    }
+
+    @keyframes floatPlane {
+      0%, 100% { transform: translate(-50%, -50%) rotate(-3deg); }
+      50% { transform: translate(-50%, -55%) rotate(2deg); }
+    }
+
+    /* 💎 Glass Form */
+    .glass-form {
+      position: relative;
+      z-index: 5;
+      width: 480px;
+      background: rgba(255, 255, 255, 0.15);
+      backdrop-filter: blur(15px);
+      border-radius: 20px;
+      padding: 35px;
+      box-shadow: 0 8px 32px rgba(31, 38, 135, 0.37);
+      color: #0d47a1;
+      animation: fadeIn 1.5s ease;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(30px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    h2 {
+      text-align: center;
+      color: #0d47a1;
+      margin-bottom: 20px;
+      font-weight: 600;
+    }
+
+    .form-control, .form-select {
+      border-radius: 8px;
+      background: rgba(255,255,255,0.8);
+      border: none;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+    }
+
+    .btn-success {
+      background: linear-gradient(90deg, #43cea2, #185a9d);
+      border: none;
+      font-weight: 600;
+      transition: 0.3s;
+    }
+
+    .btn-success:hover {
+      transform: scale(1.05);
+      background: linear-gradient(90deg, #185a9d, #43cea2);
+    }
+
+    a.btn-secondary {
+      background: rgba(0, 0, 0, 0.3);
+      border: none;
+    }
+
+    a.btn-secondary:hover {
+      background: rgba(0, 0, 0, 0.5);
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ☁️ Background Layers -->
+  <div class="cloud-layer"></div>
+  <div class="cloud-layer"></div>
+  <div class="cloud-layer"></div>
+
+  <!-- ✈️ Plane -->
+  <img src="images/airplane.png" alt="plane" class="plane">
+
+  <!-- 💎 Reservation Form -->
+  <div class="glass-form">
+    <h2>✈️ Make a Reservation</h2>
+
+    <form method="POST" action="">
+      <div class="mb-3">
+        <label class="form-label">Flight Number</label>
+        <select name="flight_number" class="form-select" required>
+          <option value="">🛫 Select Flight</option>
+          <?php while ($row = $flights->fetch_assoc()): ?>
+            <option value="<?= htmlspecialchars($row['Flight_number']) ?>">
+              <?= htmlspecialchars($row['Flight_number']) ?>
+            </option>
+          <?php endwhile; ?>
+        </select>
+      </div>
+
+      <div class="mb-3">
+        <label class="form-label">Leg Number</label>
+        <input type="number" name="leg_no" class="form-control" required>
+      </div>
+
+      <div class="mb-3">
+        <label class="form-label">Date</label>
+        <input type="date" name="date" class="form-control" required>
+      </div>
+
+      <div class="mb-3">
+        <label class="form-label">Airplane</label>
+        <select name="airplane_id" class="form-select" required>
+          <option value="">✈️ Select Airplane</option>
+          <?php while ($row = $airplanes->fetch_assoc()): ?>
+            <option value="<?= htmlspecialchars($row['Airplane_id']) ?>">
+              <?= htmlspecialchars($row['Airplane_id']) ?>
+            </option>
+          <?php endwhile; ?>
+        </select>
+      </div>
+
+      <div class="mb-3">
+        <label class="form-label">Seat Number</label>
+        <select name="seat_no" class="form-select" required>
+          <option value="">💺 Select Seat</option>
+          <?php while ($row = $seats->fetch_assoc()): ?>
+            <option value="<?= htmlspecialchars($row['Seat_no']) ?>">
+              <?= htmlspecialchars($row['Seat_no']) ?>
+            </option>
+          <?php endwhile; ?>
+        </select>
+      </div>
+
+      <input type="hidden" name="customer_name" value="<?= htmlspecialchars($username) ?>">
+
+      <div class="mb-3">
+        <label class="form-label">Contact Phone</label>
+        <input type="text" name="cphone" class="form-control" required>
+      </div>
+
+      <button type="submit" name="reserve" class="btn btn-success w-100">🛫 Reserve Now</button>
+    </form>
+
+    <div class="text-center mt-3">
+      <a href="view_reservations.php" class="btn btn-secondary px-4">⬅ View Reservations</a>
+    </div>
+  </div>
+
+</body>
+</html>
+
+<?php
+// ✅ Handle Reservation Submission
+if (isset($_POST['reserve'])) {
+  $flight_number = $_POST['flight_number'];
+  $leg_no = $_POST['leg_no'];
+  $date = $_POST['date'];
+  $airplane_id = $_POST['airplane_id'];
+  $seat_no = $_POST['seat_no'];
+  $customer_name = $_POST['customer_name'];
+  $cphone = $_POST['cphone'];
+
+  // Check duplicate seat
+  $check = $conn->prepare("SELECT * FROM reservation WHERE Flight_number=? AND Leg_no=? AND Date=? AND Seat_no=?");
+  $check->bind_param("siss", $flight_number, $leg_no, $date, $seat_no);
+  $check->execute();
+  $exists = $check->get_result();
+
+  if ($exists->num_rows > 0) {
+    echo "<script>
+      Swal.fire({
+        icon: 'error',
+        title: 'Seat Already Reserved!',
+        text: 'Seat $seat_no is already booked for Flight $flight_number.',
+        confirmButtonText: 'Try Another'
+      }).then(() => window.location='make_reservation.php');
+    </script>";
+    exit();
+  }
+
+  // Insert new reservation
+  $stmt = $conn->prepare("
+    INSERT INTO reservation (Flight_number, Leg_no, Date, Airplane_id, Seat_no, Customer_name, Cphone, Email)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+  ");
+  $stmt->bind_param("sissssss", $flight_number, $leg_no, $date, $airplane_id, $seat_no, $customer_name, $cphone, $email);
+
+  if ($stmt->execute()) {
+    echo "<script>
+      Swal.fire({
+        icon: 'success',
+        title: 'Reservation Successful!',
+        text: 'Redirecting to payment page...',
+        showConfirmButton: false,
+        timer: 2000
+      }).then(() => window.location='payment.php?flight_number=$flight_number');
+    </script>";
+  } else {
+    echo "<script>
+      Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: 'Failed to reserve seat. Try again.',
+        confirmButtonText: 'Retry'
+      });
+    </script>";
+  }
+}
+?>
+
+
+--- END FILE: make_reservation.php ---
+
+
+--- START FILE: payment.php ---
+
+<?php
+include 'db.php';
+session_start();
+
+if (!isset($_GET['flight_number'])) {
+  echo "<script>alert('Flight not specified!'); window.location.href='view_reservations.php';</script>";
+  exit();
+}
+
+$flight = $_GET['flight_number'];
+$email = $_SESSION['email'] ?? $_SESSION['user'] ?? 'guest@example.com';
+
+// ✅ Fetch class and date from the latest reservation
+$stmt = $conn->prepare("SELECT Date, Seat_no, Flight_number FROM reservation WHERE Flight_number = ? AND Email = ? ORDER BY Date DESC LIMIT 1");
+$stmt->bind_param("ss", $flight, $email);
+$stmt->execute();
+$res = $stmt->get_result();
+$resData = $res->fetch_assoc();
+$stmt->close();
+
+$travel_date = $resData['Date'] ?? date('Y-m-d');
+
+// ✅ Try to fetch fare dynamically (includes demand adjustment)
+$stmt = $conn->prepare("
+  SELECT df.final_fare, sc.class_name, df.demand_factor, df.base_fare
+  FROM dynamic_fare df
+  JOIN seat_class sc ON df.seat_class = sc.class_id
+  WHERE df.flight_number = ? AND df.travel_date = ?
+  ORDER BY sc.class_id ASC LIMIT 1
+");
+$stmt->bind_param("ss", $flight, $travel_date);
+$stmt->execute();
+$stmt->bind_result($final_fare, $class_name, $demand_factor, $base_fare);
+$stmt->fetch();
+$stmt->close();
+
+if (!$final_fare) {
+  $final_fare = 2500; // default fare
+  $class_name = "Economy";
+  $demand_factor = 1.00;
+  $base_fare = 2500;
+}
+?>
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>💳 Dynamic Payment Portal</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+  <style>
+    html, body {
+      height: 100%;
+      margin: 0;
+      overflow: hidden;
+      background: linear-gradient(to bottom, #a1c4fd, #c2e9fb);
+      font-family: 'Poppins', sans-serif;
+    }
+
+    /* ☁️ Clouds */
+    .cloud {
+      position: absolute;
+      opacity: 0.85;
+      animation: moveClouds linear infinite;
+      filter: brightness(1.1);
+      z-index: 0;
+    }
+
+    .cloud1 { top: 15%; left: -300px; width: 250px; animation-duration: 70s; }
+    .cloud2 { top: 45%; left: -400px; width: 300px; animation-duration: 100s; animation-delay: 15s; }
+    .cloud3 { top: 70%; left: -350px; width: 230px; animation-duration: 120s; animation-delay: 30s; }
+
+    @keyframes moveClouds {
+      from { transform: translateX(0); }
+      to { transform: translateX(130vw); }
+    }
+
+    /* ✈️ Plane flying */
+    .plane {
+      position: absolute;
+      width: 250px;
+      top: 40%;
+      left: -300px;
+      z-index: 2;
+      opacity: 0.85;
+      animation: flyPlane 45s ease-in-out infinite;
+      filter: drop-shadow(0 3px 5px rgba(0,0,0,0.2));
+    }
+
+    @keyframes flyPlane {
+      0% { transform: translate(0, 0) rotate(3deg); }
+      50% { transform: translate(110vw, -5vh) rotate(-3deg); }
+      100% { transform: translate(220vw, 2vh) rotate(3deg); }
+    }
+
+    /* 💳 Glass Payment Card */
+    .payment-card {
+      position: relative;
+      z-index: 5;
+      background: rgba(255, 255, 255, 0.25);
+      backdrop-filter: blur(12px);
+      border-radius: 20px;
+      padding: 40px;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+      max-width: 500px;
+      margin: 100px auto;
+      text-align: center;
+      color: #0d47a1;
+    }
+
+    .btn-pay {
+      background: linear-gradient(to right, #667eea, #764ba2);
+      border: none;
+      color: white;
+      padding: 12px 25px;
+      font-size: 1rem;
+      border-radius: 8px;
+      transition: all 0.3s;
+    }
+
+    .btn-pay:hover { transform: scale(1.05); background: linear-gradient(to right, #5a67d8, #6b46c1); }
+
+    .price-info {
+      background: rgba(255,255,255,0.4);
+      border-radius: 12px;
+      padding: 10px;
+      margin-top: 15px;
+      font-size: 0.95rem;
+    }
+  </style>
+</head>
+
+<body>
+  <!-- ☁️ Animated Background -->
+  <img src="images/cloud.png" class="cloud cloud1">
+  <img src="images/cloud.png" class="cloud cloud2">
+  <img src="images/cloud.png" class="cloud cloud3">
+  <img src="images/airplane.png" class="plane">
+
+  <!-- 💳 Payment Card -->
+  <div class="payment-card">
+    <h2>💳 Payment for Flight <?= htmlspecialchars($flight) ?></h2>
+    <div class="price-info text-start">
+      <p>🎟️ <strong>Seat Class:</strong> <?= htmlspecialchars($class_name) ?></p>
+      <p>💰 <strong>Base Fare:</strong> ₹<?= htmlspecialchars($base_fare) ?></p>
+      <p>📈 <strong>Demand Factor:</strong> x<?= htmlspecialchars($demand_factor) ?></p>
+    </div>
+    <p class="fs-5 mt-3"><strong>Total Amount: ₹<?= htmlspecialchars($final_fare) ?></strong></p>
+
+    <form action="verify_payment.php" method="POST">
+      <input type="hidden" name="flight_number" value="<?= htmlspecialchars($flight) ?>">
+      <input type="hidden" name="amount" value="<?= htmlspecialchars($final_fare) ?>">
+      <input type="hidden" name="seat_class" value="<?= htmlspecialchars($class_name) ?>">
+      <button type="submit" class="btn btn-pay w-100 mt-3">Pay Now ✈️</button>
+    </form>
+  </div>
+</body>
+</html>
+
+
+--- END FILE: payment.php ---
+
+
+--- START FILE: payment_process.php ---
+
+<?php
+// payment_process.php
+session_start();
+header('Content-Type: application/json');
+include 'db.php';
+
+if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+    http_response_code(405);
+    echo json_encode(['ok'=>false,'message'=>'Method not allowed']);
+    exit;
+}
+
+$raw = file_get_contents('php://input');
+$data = json_decode($raw, true);
+
+if (!$data) {
+    echo json_encode(['ok'=>false,'message'=>'Invalid JSON body']);
+    exit;
+}
+
+// required fields
+$required = ['method','flight','leg','date','seat','amount','currency','currency_symbol'];
+foreach ($required as $r) {
+    if (!isset($data[$r]) || $data[$r] === '') {
+        echo json_encode(['ok'=>false,'message'=>"Missing field: $r"]);
+        exit;
+    }
+}
+
+// sanitize & prepare
+$method = $data['method'] === 'card' ? 'card' : 'upi';
+$flight = substr($data['flight'],0,50);
+$leg = (int)$data['leg'];
+$date = $data['date'];
+$seat = substr($data['seat'],0,20);
+$email = $_SESSION['email'] ?? ($data['email'] ?? null);
+$customer = $_SESSION['user'] ?? ($data['customer_name'] ?? null);
+$amount = number_format((float)$data['amount'],2,'.','');
+$currency = substr($data['currency'],0,8);
+$symbol = substr($data['currency_symbol'],0,8);
+$method_details = isset($data['method_details']) ? $data['method_details'] : '';
+
+$tx = bin2hex(random_bytes(10)); // transaction id, unique enough for demo
+
+// insert into payments table
+$stmt = $conn->prepare("INSERT INTO payments
+  (transaction_id, flight_number, leg_no, date, seat_no, email, customer_name, amount, currency, currency_symbol, method, method_details, status)
+  VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'completed')
+");
+if (!$stmt) {
+    echo json_encode(['ok'=>false,'message'=>'DB prepare error: '.$conn->error]);
+    exit;
+}
+$stmt->bind_param('ssissssdssss', $tx, $flight, $leg, $date, $seat, $email, $customer, $amount, $currency, $symbol, $method, $method_details);
+
+$ok = $stmt->execute();
+if (!$ok) {
+    echo json_encode(['ok'=>false,'message'=>'DB execute error: '.$stmt->error]);
+    exit;
+}
+
+$stmt->close();
+
+// Return transaction id and success
+echo json_encode(['ok'=>true,'transaction_id'=>$tx,'message'=>'Payment recorded (demo).']);
+exit;
+
+
+--- END FILE: payment_process.php ---
+
+
+--- START FILE: payment_success.php ---
+
+<?php
+session_start();
+include 'db.php';
+include 'header.php';
+
+$tx = $_GET['tx'] ?? '';
+$payment = null;
+if ($tx) {
+    $stmt = $conn->prepare("SELECT * FROM payments WHERE transaction_id = ? LIMIT 1");
+    $stmt->bind_param('s', $tx);
+    $stmt->execute();
+    $res = $stmt->get_result();
+    $payment = $res ? $res->fetch_assoc() : null;
+    $stmt->close();
+}
+?>
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Payment Successful</title>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+<style>
+html,body{height:100%;margin:0;font-family:Inter,system-ui,Arial;background:linear-gradient(180deg,#e6f7ff,#fff);}
+.center {min-height:100vh;display:flex;align-items:center;justify-content:center;}
+.card {padding:30px;border-radius:16px;box-shadow:0 12px 40px rgba(8,30,80,0.08);}
+.success-badge {width:120px;height:120px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,#4caf50,#66bb6a);color:white;font-size:48px;margin:0 auto 20px;}
+.small-muted {color:#666}
+</style>
+</head>
+<body>
+<div class="center">
+  <div class="card text-center">
+    <div class="success-badge">✓</div>
+    <h3>Payment Successful</h3>
+    <?php if ($payment): ?>
+      <p class="small-muted">Transaction ID: <strong><?= htmlspecialchars($payment['transaction_id']) ?></strong></p>
+      <p><strong><?= htmlspecialchars($payment['currency_symbol'] . ' ' . number_format($payment['amount'],2)) ?></strong> received via <strong><?= htmlspecialchars(strtoupper($payment['method'])) ?></strong></p>
+      <p class="mb-2">Flight: <?= htmlspecialchars($payment['flight_number']) ?> — Seat: <?= htmlspecialchars($payment['seat_no']) ?> — Date: <?= htmlspecialchars($payment['date']) ?></p>
+    <?php else: ?>
+      <p class="small-muted">No payment found for the provided transaction id.</p>
+    <?php endif; ?>
+
+    <div class="mt-3">
+      <a href="view_reservations.php" class="btn btn-primary">View Reservations</a>
+      <a href="index.php" class="btn btn-outline-secondary">Home</a>
+    </div>
+  </div>
+</div>
+</body>
+</html>
+
+
+--- END FILE: payment_success.php ---
+
+
+--- START FILE: query_executor.php ---
+
+<?php
+// query_executor.php
+// Run predefined SELECT queries or a manual SELECT (SELECT-only allowed).
+include 'db.php';
+session_start();
+?>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>🧠 SQL Query Explorer</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+<style>
+/* ===== Background / Clouds / Plane (animated) ===== */
+html,body{height:100%;margin:0;padding:0;font-family:'Poppins',sans-serif;background:linear-gradient(to bottom,#a1c4fd,#c2e9fb);overflow-x:hidden}
+.cloud-layer{position:absolute;width:250%;height:150%;background:url('images/cloud.png') repeat-x;background-size:contain;opacity:.45;top:0;left:-50%;animation:moveClouds linear infinite;z-index:1}
+.cloud-layer:nth-child(1){animation-duration:150s;top:5%;opacity:.6}
+.cloud-layer:nth-child(2){animation-duration:180s;top:40%;opacity:.5}
+.cloud-layer:nth-child(3){animation-duration:210s;top:75%;opacity:.4}
+@keyframes moveClouds{from{background-position-x:0}to{background-position-x:10000px}}
+.plane{position:absolute;width:1800px;height:auto;top:0;left:-500px;opacity:.85;z-index:0;filter:drop-shadow(0 10px 15px rgba(0,0,0,.25));animation:flyInsideClouds 55s ease-in-out infinite}
+@keyframes flyInsideClouds{0%{transform:translate(0,0) rotate(6deg)}50%{transform:translate(110vw,-8vh) rotate(-4deg)}100%{transform:translate(-200px,6vh) rotate(6deg)}}
+
+/* ===== Glass box ===== */
+.glass-box{position:relative;z-index:5;background:rgba(255,255,255,.15);backdrop-filter:blur(10px);border-radius:18px;box-shadow:0 6px 25px rgba(0,0,0,.2);padding:30px;width:90%;max-width:1200px;margin:110px auto;color:#0d47a1}
+h2{font-weight:700;color:#0d47a1}
+.table{background:rgba(255,255,255,.95)}
+textarea,select{background:rgba(255,255,255,.98);border:1px solid rgba(0,0,0,.08)}
+.btn-success{background:#0d47a1;border:none}
+.btn-success:hover{background:#1565c0}
+.code-block{font-family:ui-monospace, SFMono-Regular, Menlo, Monaco, "Roboto Mono", monospace;background:#0b1220;color:#dfe7ff;padding:10px;border-radius:8px;overflow:auto}
+.small-muted{font-size:.9rem;color:#456}
+</style>
+<script>
+document.addEventListener("DOMContentLoaded",function(){
+  const form=document.getElementById("queryForm");
+  const manual=document.getElementById("manual_query");
+  manual.addEventListener("keydown",function(e){
+    if(e.key==="Enter" && !e.shiftKey){
+      e.preventDefault();
+      form.submit();
+    }
+  });
+});
+</script>
+</head>
+<body>
+<?php include 'header.php'; ?>
+
+<!-- background -->
+<div class="cloud-layer"></div>
+<div class="cloud-layer"></div>
+<div class="cloud-layer"></div>
+<img src="images/airplane.png" alt="airplane" class="plane">
+
+<div class="glass-box">
+  <h2>🧮 SQL Query Explorer — Predefined & Manual (SELECT-only)</h2>
+  <p class="small-muted">Choose a predefined query (examples include joins, UNION, aggregates, nested queries) or enter your own <strong>SELECT</strong> statement. Non-SELECT queries will be rejected.</p>
+
+  <form method="POST" id="queryForm" class="mb-4">
+    <label class="form-label fw-semibold">Predefined queries</label>
+    <select name="query_choice" class="form-select mb-3">
+      <option value="">-- Select Query --</option>
+      <option value="show_tables">🗂️ Show All Tables</option>
+
+      <optgroup label="Aggregates & GROUP BY">
+        <option value="agg1">📊 Reservations per Flight (GROUP BY)</option>
+        <option value="agg2">📊 Seats per Airplane Type (JOIN + SUM)</option>
+      </optgroup>
+
+      <optgroup label="Complex JOINs">
+        <option value="j1">🔗 Reservation → Flight (simple JOIN)</option>
+        <option value="j2">🔗 Flight → Leg_Instance → Airplane → Airplane_Type (multi-join)</option>
+        <option value="j3">🔗 Reservation → Leg_Instance → Airports (departure/arrival)</option>
+      </optgroup>
+
+      <optgroup label="UNION & Subqueries">
+        <option value="u1">🔀 UNION: Flights from two airlines</option>
+        <option value="nested1">🧠 Nested: Flights with > average reservations</option>
+      </optgroup>
+
+      <optgroup label="Window-like / TopN / Correlated">
+        <option value="top_seats">🏆 Top 3 seats by bookings (simulated)</option>
+        <option value="corr1">🔎 Correlated subquery: Customers with multiple distinct flights</option>
+      </optgroup>
+    </select>
+
+    <label for="manual_query" class="form-label fw-semibold mt-3">Or enter your own SQL (SELECT-only)</label>
+    <textarea name="manual_query" id="manual_query" class="form-control mb-3" rows="4" placeholder="SELECT * FROM reservation WHERE Flight_number = 'AI301';"></textarea>
+
+    <button type="submit" class="btn btn-success">Run Query</button>
+  </form>
+
+<?php
+// ---------- Helper: predefined queries ----------
+$queries = [
+
+  // 0 show tables
+  'show_tables' => "SHOW TABLES;",
+
+  // 1 - aggregate: reservations per flight
+  'agg1' => "SELECT r.Flight_number,
+                    COUNT(*) AS total_reservations,
+                    MAX(r.Date) AS last_booking_date
+             FROM reservation r
+             GROUP BY r.Flight_number
+             ORDER BY total_reservations DESC
+             LIMIT 100;",
+
+  // 2 - aggregate join: total seats by airplane type
+  'agg2' => "SELECT t.Type_name,
+                    t.Company,
+                    SUM(a.Total_no_of_seats) AS total_seats,
+                    COUNT(a.Airplane_id) AS airplane_count
+             FROM airplane a
+             JOIN airplane_type t ON a.Type_name = t.Type_name
+             GROUP BY t.Type_name, t.Company
+             ORDER BY total_seats DESC;",
+
+  // 3 - j1: reservation + flight
+  'j1' => "SELECT r.Flight_number,
+                  r.Date,
+                  r.Seat_no,
+                  r.Customer_name,
+                  f.Airline,
+                  f.Duration
+           FROM reservation r
+           LEFT JOIN flight f ON r.Flight_number = f.Flight_number
+           ORDER BY r.Date DESC
+           LIMIT 200;",
+
+  // 4 - j2: flight -> leg_instance -> airplane -> airplane_type
+  'j2' => "SELECT f.Flight_number,
+                  f.Airline,
+                  li.Leg_no,
+                  li.Date AS leg_date,
+                  li.Airplane_id,
+                  a.Total_no_of_seats,
+                  t.Type_name,
+                  t.Company
+           FROM flight f
+           JOIN leg_instance li ON f.Flight_number = li.Flight_number
+           LEFT JOIN airplane a ON li.Airplane_id = a.Airplane_id
+           LEFT JOIN airplane_type t ON a.Type_name = t.Type_name
+           ORDER BY li.Date DESC
+           LIMIT 200;",
+
+  // 5 - j3: reservation -> leg_instance -> airports (departure/arrival via flight_leg)
+  'j3' => "SELECT r.Flight_number,
+                  r.Date,
+                  r.Seat_no,
+                  dep.Name AS departure_airport,
+                  dep.City AS departure_city,
+                  arr.Name AS arrival_airport,
+                  arr.City AS arrival_city
+           FROM reservation r
+           JOIN leg_instance li ON r.Flight_number = li.Flight_number AND r.Leg_no = li.Leg_no AND r.Date = li.Date
+           JOIN flight_leg fl ON li.Flight_number = fl.Flight_number AND li.Leg_no = fl.Leg_no
+           LEFT JOIN airport dep ON fl.Departure_airport_code = dep.Airport_code
+           LEFT JOIN airport arr ON fl.Arrival_airport_code = arr.Airport_code
+           LIMIT 200;",
+
+  // 6 - union example: flights from two airlines
+  'u1' => "(SELECT Flight_number, Airline, 'Air India' AS source FROM flight WHERE Airline LIKE '%Air India%')
+           UNION
+           (SELECT Flight_number, Airline, 'SpiceJet' AS source FROM flight WHERE Airline LIKE '%SpiceJet%')
+           ORDER BY Airline, Flight_number
+           LIMIT 200;",
+
+  // 7 - nested: flights having reservations greater than average reservations per flight
+  'nested1' => "SELECT Flight_number, cnt
+                FROM (
+                  SELECT Flight_number, COUNT(*) AS cnt
+                  FROM reservation
+                  GROUP BY Flight_number
+                ) AS sub
+                WHERE cnt > (SELECT AVG(cnt2) FROM (SELECT COUNT(*) AS cnt2 FROM reservation GROUP BY Flight_number) AS t)
+                ORDER BY cnt DESC;",
+
+  // 8 - top seats by bookings (TopN simulation)
+  'top_seats' => "SELECT Seat_no, COUNT(*) AS bookings
+                  FROM reservation
+                  GROUP BY Seat_no
+                  ORDER BY bookings DESC
+                  LIMIT 3;",
+
+  // 9 - correlated subquery: customers who booked more than 1 distinct flight
+  'corr1' => "SELECT DISTINCT r.Customer_name, r.Email,
+                     (SELECT COUNT(DISTINCT r2.Flight_number) FROM reservation r2 WHERE r2.Email = r.Email) AS distinct_flights
+              FROM reservation r
+              WHERE (SELECT COUNT(DISTINCT r3.Flight_number) FROM reservation r3 WHERE r3.Email = r.Email) > 1
+              ORDER BY distinct_flights DESC
+              LIMIT 200;"
+];
+
+// ---------- Determine which query to run ----------
+$query = '';
+$manual_query = trim($_POST['manual_query'] ?? '');
+$choice = $_POST['query_choice'] ?? '';
+
+if ($choice === 'show_tables') {
+    $query = $queries['show_tables'];
+} elseif ($choice && isset($queries[$choice])) {
+    $query = $queries[$choice];
+} elseif ($manual_query) {
+    // Allow manual queries only if they start with SELECT
+    if (preg_match('/^\s*SELECT\b/i', $manual_query)) {
+        $query = $manual_query;
+    } else {
+        echo "<div class='alert alert-danger'>⚠️ Only SELECT queries are allowed for manual input.</div>";
+    }
+}
+
+// ---------- Execute and display ----------
+if ($query) {
+    echo "<h4 class='text-primary mt-3'>🧾 Query to run</h4>";
+    echo "<div class='code-block mb-3'>" . htmlspecialchars($query) . "</div>";
+
+    // run (we use mysqli->query because these are read-only selects)
+    $result = $conn->query($query);
+    if ($result === false) {
+        echo "<div class='alert alert-danger'>❌ SQL Error: " . htmlspecialchars($conn->error) . "</div>";
+    } else {
+        if ($result->num_rows === 0) {
+            echo "<div class='alert alert-info'>✅ Query executed successfully — no rows returned.</div>";
+        } else {
+            echo "<div class='table-responsive mt-3'>";
+            echo "<table class='table table-bordered table-striped table-sm'>";
+            // header
+            echo "<thead class='table-light'><tr>";
+            // fetch fields safely
+            $fields = $result->fetch_fields();
+            foreach ($fields as $f) {
+                echo "<th>" . htmlspecialchars($f->name) . "</th>";
+            }
+            echo "</tr></thead><tbody>";
+            // rows
+            while ($row = $result->fetch_assoc()) {
+                echo "<tr>";
+                foreach ($row as $val) {
+                    echo "<td>" . htmlspecialchars($val ?? '') . "</td>";
+                }
+                echo "</tr>";
+            }
+            echo "</tbody></table></div>";
+        }
+        // free
+        $result->free();
+    }
+}
+?>
+
+</div> <!-- glass-box -->
+</body>
+</html>
+
+
+--- END FILE: query_executor.php ---
+
+
+--- START FILE: reservation.php ---
+
+<?php
+include 'header.php';
+include 'db.php';
+session_start();
+
+// 🔒 Ensure login
+if (!isset($_SESSION['user'])) {
+  header("Location: login.php");
+  exit();
+}
+
+if ($_SERVER["REQUEST_METHOD"] == "POST") {
+  $flight_number = $_POST['flight_number'];
+  $leg_no = $_POST['leg_no'];
+  $date = $_POST['date'];
+  $airplane_id = $_POST['airplane_id'];
+  $seat_no = $_POST['seat_no'];
+  $cphone = $_POST['cphone'];
+  $email = $_SESSION['user'];
+
+  // ✅ Step 1: Check for duplicate seat reservation
+  $check = $conn->prepare("
+    SELECT * FROM reservation
+    WHERE Flight_number = ? AND Leg_no = ? AND Date = ? AND Seat_no = ?
+  ");
+  $check->bind_param("siss", $flight_number, $leg_no, $date, $seat_no);
+  $check->execute();
+  $exists = $check->get_result();
+
+  if ($exists->num_rows > 0) {
+    echo "<script src='https://cdn.jsdelivr.net/npm/sweetalert2@11'></script>
+          <script>
+            Swal.fire({
+              icon: 'error',
+              title: 'Seat Already Reserved!',
+              text: 'Seat $seat_no is already booked for Flight $flight_number.',
+              confirmButtonText: 'Back to Booking'
+            }).then(() => window.location.href='make_reservation.php');
+          </script>";
+    exit();
+  }
+
+  // ✅ Step 2: Insert Reservation
+  $stmt = $conn->prepare("
+    INSERT INTO reservation (Flight_number, Leg_no, Date, Airplane_id, Seat_no, Cphone, Email, payment_status)
+    VALUES (?, ?, ?, ?, ?, ?, ?, 'Pending')
+  ");
+  $stmt->bind_param("sisssss", $flight_number, $leg_no, $date, $airplane_id, $seat_no, $cphone, $email);
+
+  if ($stmt->execute()) {
+    echo "<script src='https://cdn.jsdelivr.net/npm/sweetalert2@11'></script>
+          <script>
+            Swal.fire({
+              icon: 'success',
+              title: 'Reservation Successful!',
+              text: 'Redirecting to payment page...',
+              showConfirmButton: false,
+              timer: 2000
+            }).then(() => {
+              window.location.href = 'payment.php?flight_number=$flight_number';
+            });
+          </script>";
+    exit();
+  } else {
+    echo "<script src='https://cdn.jsdelivr.net/npm/sweetalert2@11'></script>
+          <script>
+            Swal.fire({
+              icon: 'error',
+              title: 'Reservation Failed',
+              text: 'Something went wrong. Please try again.',
+              confirmButtonText: 'Retry'
+            }).then(() => window.location.href='make_reservation.php');
+          </script>";
+    exit();
+  }
+}
+?>
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>✈️ Make a Reservation</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+<style>
+  html, body {
+    height: 100%;
+    margin: 0;
+    overflow: hidden;
+    font-family: 'Poppins', sans-serif;
+    background: linear-gradient(to bottom, #90caf9, #e3f2fd);
+    position: relative;
+  }
+
+  /* ☁️ Clouds */
+  .cloud {
+    position: absolute;
+    opacity: 0.85;
+    animation: moveClouds linear infinite;
+    filter: brightness(1.1);
+  }
+
+  .cloud:nth-child(1) { top: 15%; left: -200px; width: 250px; animation-duration: 60s; }
+  .cloud:nth-child(2) { top: 50%; left: -300px; width: 300px; animation-duration: 90s; animation-delay: 5s; }
+  .cloud:nth-child(3) { top: 70%; left: -250px; width: 220px; animation-duration: 120s; animation-delay: 15s; }
+
+  @keyframes moveClouds {
+    from { transform: translateX(0); }
+    to { transform: translateX(120vw); }
+  }
+
+  /* ✈️ Airplane flying inside clouds */
+  .plane {
+    position: absolute;
+    width: 2200px;
+    top: 30%;
+    left: -250px;
+    opacity: 0.9;
+    z-index: 2;
+    filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));
+    animation: flyInClouds 40s ease-in-out infinite;
+  }
+
+  @keyframes flyInClouds {
+    0% { transform: translate(0, 0) rotate(3deg); opacity: 0.9; }
+    50% { transform: translate(110vw, -6vh) rotate(-5deg); opacity: 0.7; }
+    100% { transform: translate(220vw, 5vh) rotate(4deg); opacity: 0.9; }
+  }
+
+  /* 🌟 Form Card */
+  .form-card {
+    position: relative;
+    z-index: 5;
+    margin-top: 10vh;
+    background: rgba(255,255,255,0.15);
+    backdrop-filter: blur(15px);
+    border-radius: 20px;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.25);
+    color: #0d47a1;
+    padding: 40px;
+    max-width: 550px;
+  }
+
+  .btn-custom {
+    background: #0d47a1;
+    color: #fff;
+    font-weight: 600;
+    transition: all 0.3s ease;
+  }
+
+  .btn-custom:hover {
+    background: #1565c0;
+    transform: scale(1.05);
+  }
+</style>
+</head>
+<body>
+<!-- ☁️ Background -->
+<img src="images/cloud.png" alt="cloud" class="cloud">
+<img src="images/cloud.png" alt="cloud" class="cloud">
+<img src="images/cloud.png" alt="cloud" class="cloud">
+
+<!-- ✈️ Airplane -->
+<img src="images/airplane.png" alt="plane" class="plane">
+
+<div class="d-flex justify-content-center align-items-center vh-100">
+  <div class="form-card text-center">
+    <h2 class="mb-4">✈️ Book Your Reservation</h2>
+    <form action="reservation.php" method="POST">
+      <input type="text" name="flight_number" class="form-control mb-3" placeholder="Flight Number" required>
+      <input type="number" name="leg_no" class="form-control mb-3" placeholder="Leg Number" required>
+      <input type="date" name="date" class="form-control mb-3" required>
+      <input type="text" name="airplane_id" class="form-control mb-3" placeholder="Airplane ID" required>
+      <input type="text" name="seat_no" class="form-control mb-3" placeholder="Seat Number" required>
+      <input type="text" name="cphone" class="form-control mb-3" placeholder="Contact Phone" required>
+      <button type="submit" class="btn btn-custom w-100">🛫 Reserve Now</button>
+    </form>
+    <div class="mt-3">
+      <a href="view_reservations.php" class="btn btn-outline-secondary btn-sm">📋 View Reservations</a>
+    </div>
+  </div>
+</div>
+</body>
+</html>
+
+
+--- END FILE: reservation.php ---
+
+
+--- START FILE: reserve.php ---
+
+<?php include 'header.php'; ?>
+
+<?php
+include 'db.php';
+
+if ($_SERVER["REQUEST_METHOD"] == "POST") {
+    $flight = $_POST['flight_number'];
+    $leg = (int)$_POST['leg_no'];
+    $date = $_POST['date'];
+    $airplane = $_POST['airplane_id'];
+    $seat = $_POST['seat_no'];
+    $name = $_POST['customer_name'];
+    $phone = $_POST['cphone'];
+
+    // Insert dependencies
+    $conn->query("INSERT IGNORE INTO Airport (Airport_code, Name, City, State)
+                  VALUES ('BLR', 'Kempegowda Intl', 'Bangalore', 'Karnataka'),
+                         ('DEL', 'Indira Gandhi Intl', 'Delhi', 'Delhi')");
+
+    $conn->query("INSERT IGNORE INTO Flight (Flight_number) VALUES ('$flight')");
+
+    $conn->query("INSERT IGNORE INTO Flight_Leg (Flight_number, Leg_no, Departure_airport_code, Arrival_airport_code)
+                  VALUES ('$flight', $leg, 'BLR', 'DEL')");
+
+    $conn->query("INSERT IGNORE INTO Airplane_Type (Type_name, Max_seats, Company)
+                  VALUES ('Airbus-A320', 180, 'Airbus')");
+
+    $conn->query("INSERT IGNORE INTO Airplane (Airplane_id, Total_no_of_seats, Type_name)
+                  VALUES ('$airplane', 180, 'Airbus-A320')");
+
+    $conn->query("INSERT IGNORE INTO Seat (Airplane_id, Seat_no) VALUES ('$airplane', '$seat')");
+
+    // Insert Leg_Instance if missing
+    $check = $conn->prepare("SELECT 1 FROM Leg_Instance WHERE Flight_number=? AND Leg_no=? AND Date=?");
+    $check->bind_param("sis", $flight, $leg, $date);
+    $check->execute();
+    $result = $check->get_result();
+
+    if ($result->num_rows === 0) {
+        $insert_leg = $conn->prepare("INSERT INTO Leg_Instance (
+            Flight_number, Leg_no, Date,
+            Number_of_available_seats, Airplane_id,
+            Departure_airport_code, Departure_time,
+            Arrival_airport_code, Arrival_time
+        ) VALUES (?, ?, ?, 100, ?, 'BLR', '10:00:00', 'DEL', '12:30:00')");
+        $insert_leg->bind_param("siss", $flight, $leg, $date, $airplane);
+        $insert_leg->execute();
+    }
+
+    // Insert Reservation
+    $stmt = $conn->prepare("INSERT INTO Reservation (
+        Flight_number, Leg_no, Date,
+        Airplane_id, Seat_no,
+        Customer_name, Cphone
+    ) VALUES (?, ?, ?, ?, ?, ?, ?)");
+    $stmt->bind_param("sisssss", $flight, $leg, $date, $airplane, $seat, $name, $phone);
+
+    if ($stmt->execute()) {
+        header("Location: reservation.php?status=success");
+        exit();
+    } else {
+        header("Location: reservation.php?status=error");
+        exit();
+    }
+}
+?>
+
+
+--- END FILE: reserve.php ---
+
+
+--- START FILE: sample.sql ---
+
+CREATE TABLE students (
+    student_id INT PRIMARY KEY AUTO_INCREMENT,
+    first_name VARCHAR(50),
+    last_name VARCHAR(50),
+    age INT,
+    grade VARCHAR(5),
+    email VARCHAR(100)
+);
+INSERT INTO students (first_name, last_name, age, grade, email)
+VALUES ('Rahul', 'Mehra', 18, '12A', 'rahul.mehra@example.com');
+INSERT INTO students (first_name, last_name, age, grade, email)
+VALUES
+('Ananya', 'Verma', 17, '11B', 'ananya.verma@example.com'),
+('Rohit', 'Patil', 18, '12C', 'rohit.patil@example.com'),
+('Sneha', 'Kumar', 17, '11A', 'sneha.kumar@example.com');
+SELECT * FROM students;
+
+
+--- END FILE: sample.sql ---
+
+
+--- START FILE: sample.txt ---
+
+CREATE TABLE students (
+    student_id INT PRIMARY KEY AUTO_INCREMENT,
+    first_name VARCHAR(50),
+    last_name VARCHAR(50),
+    age INT,
+    grade VARCHAR(5),
+    email VARCHAR(100)
+);
+INSERT INTO students (first_name, last_name, age, grade, email)
+VALUES ('Rahul', 'Mehra', 18, '12A', 'rahul.mehra@example.com');
+INSERT INTO students (first_name, last_name, age, grade, email)
+VALUES
+('Ananya', 'Verma', 17, '11B', 'ananya.verma@example.com'),
+('Rohit', 'Patil', 18, '12C', 'rohit.patil@example.com'),
+('Sneha', 'Kumar', 17, '11A', 'sneha.kumar@example.com');
+SELECT * FROM students;
+
+
+--- END FILE: sample.txt ---
+
+
+--- START FILE: signup.php ---
+
+<?php
+include 'db.php';
+session_start();
+
+$msg = "";
+if ($_SERVER["REQUEST_METHOD"] == "POST") {
+    $username = trim($_POST['username']);
+    $email = trim($_POST['email']);
+    $password = password_hash($_POST['password'], PASSWORD_DEFAULT);
+
+    $stmt = $conn->prepare("INSERT INTO users (username, email, password) VALUES (?, ?, ?)");
+    $stmt->bind_param("sss", $username, $email, $password);
+
+    if ($stmt->execute()) {
+        $msg = "<div class='alert alert-success'>✅ Registration successful! You can now <a href='login.php'>login</a>.</div>";
+    } else {
+        $msg = "<div class='alert alert-danger'>❌ Error: " . htmlspecialchars($conn->error) . "</div>";
+    }
+    $stmt->close();
+}
+?>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Signup | Airline System</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+</head>
+<body class="container mt-5">
+  <?php include 'header.php'; ?>
+  <div class="col-md-6 offset-md-3 mt-4">
+    <h2>✈️ Create Account</h2>
+    <?= $msg ?>
+    <form method="POST">
+      <input type="text" name="username" class="form-control mb-3" placeholder="Username" required>
+      <input type="email" name="email" class="form-control mb-3" placeholder="Email" required>
+      <input type="password" name="password" class="form-control mb-3" placeholder="Password" required>
+      <button type="submit" class="btn btn-primary w-100">Sign Up</button>
+    </form>
+    <p class="mt-3 text-center">Already have an account? <a href="login.php">Login</a></p>
+  </div>
+</body>
+</html>
+
+
+--- END FILE: signup.php ---
+
+
+--- START FILE: style.css ---
+
+/* =======================
+   Global Body
+======================= */
+body {
+  background: linear-gradient(135deg, #74ebd5 0%, #ACB6E5 100%);
+  font-family: 'Segoe UI', sans-serif;
+  min-height: 100vh;
+  margin: 0;
+  padding: 0;
+  color: #333;
+}
+
+/* =======================
+   Navbar Links
+======================= */
+.nav-link:hover {
+  background-color: #0d6efd;
+  color: #fff !important;
+  border-radius: 8px;
+  transition: 0.3s;
+}
+
+/* =======================
+   Cards
+======================= */
+.card {
+  border-radius: 12px;
+  box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+  transition: 0.3s;
+}
+.card:hover {
+  transform: translateY(-3px);
+}
+
+/* =======================
+   CRUD Panel Headings
+======================= */
+.crud-panel h4 {
+  margin-right: 15px;
+  color: #333;
+}
+
+/* =======================
+   Tables
+======================= */
+.table {
+  background-color: rgba(255, 255, 255, 0.95);
+  border-radius: 10px;
+  overflow: hidden;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+}
+.table th {
+  background: #667eea;
+  color: white;
+}
+.table tr:nth-child(even) {
+  background: rgba(102, 126, 234, 0.1);
+}
+
+/* =======================
+   Buttons
+======================= */
+.btn-primary {
+  background: linear-gradient(to right, #667eea, #764ba2);
+  border: none;
+  color: white;
+  transition: 0.3s;
+}
+.btn-primary:hover {
+  opacity: 0.9;
+}
+
+.btn-success {
+  background: linear-gradient(to right, #43e97b, #38f9d7);
+  border: none;
+  color: white;
+  transition: 0.3s;
+}
+.btn-success:hover {
+  opacity: 0.9;
+}
+
+/* =======================
+   💬 Chat Container (Modern Glass Look)
+======================= */
+.chat-container {
+  position: relative;
+  background: rgba(255, 255, 255, 0.15);
+  backdrop-filter: blur(15px);
+  border-radius: 18px;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.25);
+  display: flex;
+  flex-direction: column;
+  height: 70vh;
+  width: 100%;
+  overflow: hidden;
+  padding: 15px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+/* 🌤️ Background Image Layer (cloud + airplane) */
+.chat-container::before {
+  content: "";
+  background: url("images/cloud.png") repeat-x,
+              url("images/airplane.png") no-repeat;
+  background-size: 400px, 160px;
+  background-position: 0 40%, right 70%;
+  opacity: 0.25;
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  animation: moveCloudsChat 120s linear infinite;
+}
+
+/* ☁️ Subtle Cloud Motion */
+@keyframes moveCloudsChat {
+  from { background-position: 0 40%, right 70%; }
+  to { background-position: 2000px 40%, right 70%; }
+}
+
+/* =======================
+   🧠 Chat Messages
+======================= */
+.assistant-message,
+.user-message {
+  position: relative;
+  z-index: 1;
+  border-radius: 15px;
+  padding: 10px 15px;
+  margin: 10px;
+  max-width: 80%;
+  word-wrap: break-word;
+  font-size: 0.95rem;
+  line-height: 1.4;
+}
+
+/* 🟦 Assistant Message (light bubble) */
+.assistant-message {
+  background: linear-gradient(135deg, #e3f2fd, #bbdefb);
+  color: #0d47a1;
+  align-self: flex-start;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+
+/* 🟣 User Message (right bubble) */
+.user-message {
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  color: #fff;
+  align-self: flex-end;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+  margin-left: auto;
+}
+
+/* ✨ Message Entry Glow */
+.user-message::after {
+  content: "✈️";
+  position: absolute;
+  right: -25px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 1.2rem;
+  opacity: 0.7;
+}
+
+/* =======================
+   📩 Input Area
+======================= */
+.chat-input {
+  display: flex;
+  z-index: 1;
+  border-top: 1px solid rgba(255,255,255,0.25);
+  padding-top: 10px;
+  background: rgba(255,255,255,0.1);
+  backdrop-filter: blur(8px);
+  margin-top: auto;
+}
+
+.chat-input input {
+  flex: 1;
+  background: rgba(255,255,255,0.7);
+  border: none;
+  border-radius: 8px;
+  padding: 10px;
+  outline: none;
+  color: #333;
+  font-size: 0.95rem;
+}
+
+.chat-input button {
+  margin-left: 10px;
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  padding: 10px 18px;
+  cursor: pointer;
+  transition: 0.3s ease;
+}
+
+.chat-input button:hover {
+  background: linear-gradient(135deg, #5a67d8, #6b46c1);
+  transform: scale(1.05);
+}
+/* =======================
+   Animated Airplane
+======================= */
+.airplane {
+  position: fixed;
+  width: 80px;
+  top: 20%;
+  left: -100px; /* Start off-screen */
+  z-index: 1000;
+  animation: fly 15s linear infinite;
+}
+
+@keyframes fly {
+  0% {
+    transform: translateX(0) rotate(0deg);
+  }
+  50% {
+    transform: translateX(120vw) rotate(15deg); /* Fly across the screen */
+  }
+  100% {
+    transform: translateX(-10vw) rotate(0deg); /* Loop back */
+  }
+}/* ☁️ Moving Clouds */
+.cloud {
+  position: absolute;
+  opacity: 0.85;
+  animation: moveClouds linear infinite;
+  filter: brightness(1.1);
+  z-index: 1;
+}
+
+.cloud1 { top: 10%; left: -300px; width: 260px; animation-duration: 70s; }
+.cloud2 { top: 35%; left: -400px; width: 320px; animation-duration: 90s; animation-delay: 8s; }
+.cloud3 { top: 60%; left: -350px; width: 280px; animation-duration: 110s; animation-delay: 15s; }
+.cloud4 { top: 75%; left: -250px; width: 240px; animation-duration: 95s; animation-delay: 30s; }
+.cloud5 { top: 50%; left: -500px; width: 300px; animation-duration: 100s; animation-delay: 50s; }
+
+@keyframes moveClouds {
+  from { transform: translateX(0); }
+  to { transform: translateX(130vw); }
+}
+
+/* ✈️ Airplanes Flying Inside Clouds */
+.plane {
+  position: absolute;
+  width: 250px;
+  opacity: 0.9;
+  z-index: 2;
+  filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));
+}
+
+.plane1 {
+  top: 25%;
+  left: -350px;
+  animation: flyPlane1 50s linear infinite;
+  animation-delay: 0s;
+}
+
+.plane2 {
+  top: 55%;
+  left: -450px;
+  animation: flyPlane2 60s linear infinite;
+  animation-delay: 15s;
+  opacity: 0.8;
+}
+
+.plane3 {
+  top: 70%;
+  left: -400px;
+  animation: flyPlane3 80s linear infinite;
+  animation-delay: 30s;
+  opacity: 0.7;
+}
+
+@keyframes flyPlane1 {
+  0% { transform: translate(0, 0) rotate(3deg); }
+  50% { transform: translate(110vw, -5vh) rotate(-3deg); }
+  100% { transform: translate(220vw, 3vh) rotate(4deg); }
+}
+
+@keyframes flyPlane2 {
+  0% { transform: translate(0, 0) rotate(2deg); }
+  50% { transform: translate(120vw, 4vh) rotate(-2deg); }
+  100% { transform: translate(240vw, -2vh) rotate(3deg); }
+}
+
+@keyframes flyPlane3 {
+  0% { transform: translate(0, 0) rotate(-2deg); }
+  50% { transform: translate(130vw, -3vh) rotate(1deg); }
+  100% { transform: translate(260vw, 2vh) rotate(-3deg); }
+}
+/* 🌤️ Ensure full-screen sky layout */
+html, body {
+  overflow-x: hidden;
+  position: relative;
+}
+
+/* 🌈 Make planes appear to pass through clouds (depth layering) */
+.cloud { z-index: 1; }
+.plane { z-index: 2; }
+.card, .container, nav, form { z-index: 5; position: relative; }
+
+/* 🧩 Smooth performance for animations */
+.cloud, .plane {
+  will-change: transform;
+  backface-visibility: hidden;
+}
+
+
+
+--- END FILE: style.css ---
+
+
+--- START FILE: sum.java ---
+
+import java.util.Scanner
+public class Sum
+{
+  public static void main(String[] args)
+ {
+	Scanner input =new Scanner(System.in);
+	int num1=input.nextInt();
+	int num2=input.nextInt();
+	int sum=num1+num2;
+	System.out.println("Sum=" +sum);
+
+--- END FILE: sum.java ---
+
+
+--- START FILE: test_api.php ---
+
+<?php
+$key = "YOUR_GEMINI_API_KEY";
+$url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=$key";
+
+$payload = json_encode(["contents" => [[ "parts" => [["text" => "Hello Gemini"]] ]]]);
+$ch = curl_init($url);
+curl_setopt_array($ch, [
+    CURLOPT_RETURNTRANSFER => true,
+    CURLOPT_POST => true,
+    CURLOPT_HTTPHEADER => ["Content-Type: application/json"],
+    CURLOPT_POSTFIELDS => $payload,
+]);
+echo curl_exec($ch);
+curl_close($ch);
+?>
+
+
+--- END FILE: test_api.php ---
+
+
+--- START FILE: Untitled.txt ---
+
+
+Setting environment for using XAMPP for Windows.
+ganes_kxvl8b7@MAHESH c:\xampp
+# mysql -u root
+Welcome to the MariaDB monitor.  Commands end with ; or \g.
+Your MariaDB connection id is 10
+Server version: 10.4.32-MariaDB mariadb.org binary distribution
+
+Copyright (c) 2000, 2018, Oracle, MariaDB Corporation Ab and others.
+
+Type 'help;' or '\h' for help. Type '\c' to clear the current input statement.
+
+MariaDB [(none)]> show databases;
++--------------------+
+| Database           |
++--------------------+
+| airline            |
+| airline_project    |
+| information_schema |
+| library_db         |
+| movie_db           |
+| mysql              |
+| performance_schema |
+| phpmyadmin         |
+| test               |
++--------------------+
+9 rows in set (0.056 sec)
+
+MariaDB [(none)]> use airline;
+Database changed
+MariaDB [airline]> show tables;
++-------------------+
+| Tables_in_airline |
++-------------------+
+| airplane          |
+| airplane_type     |
+| airport           |
+| can_land          |
+| fare              |
+| flight            |
+| flight_leg        |
+| leg_instance      |
+| reservation       |
+| seat              |
++-------------------+
+10 rows in set (0.001 sec)
+
+MariaDB [airline]> SELECT Seat_no, COUNT(*) AS total_bookings
+    -> FROM Reservation
+    -> GROUP BY Seat_no
+    -> ORDER BY total_bookings DESC
+    -> LIMIT 1;
++---------+----------------+
+| Seat_no | total_bookings |
++---------+----------------+
+| 14C     |              3 |
++---------+----------------+
+1 row in set (0.001 sec)
+
+MariaDB [airline]> SELECT Flight_number, Date, COUNT(*) AS total_reservations
+    -> FROM Reservation
+    -> GROUP BY Flight_number, Date
+    -> HAVING COUNT(*) > 1;
+Empty set (0.002 sec)
+
+MariaDB [airline]> SELECT Customer_name, Seat_no, COUNT(DISTINCT Flight_number) AS flights_with_same_seat
+    -> FROM Reservation
+    -> GROUP BY Customer_name, Seat_no
+    -> HAVING COUNT(DISTINCT Flight_number) > 1;
++---------------+---------+------------------------+
+| Customer_name | Seat_no | flights_with_same_seat |
++---------------+---------+------------------------+
+| MAHES         | 14C     |                      3 |
++---------------+---------+------------------------+
+1 row in set (0.001 sec)
+
+MariaDB [airline]> SELECT Flight_number, Leg_no, Date, Seat_no, Customer_name, COUNT(*) AS duplicates
+    -> FROM Reservation
+    -> GROUP BY Flight_number, Leg_no, Date, Seat_no, Customer_name
+    -> HAVING COUNT(*) > 1;
+Empty set (0.001 sec)
+
+MariaDB [airline]> SELECT A.Type_name, COUNT(*) AS total_reservations
+    -> FROM Reservation R
+    -> JOIN Airplane A ON R.Airplane_id = A.Airplane_id
+    -> GROUP BY A.Type_name
+    -> ORDER BY total_reservations DESC;
++-------------+--------------------+
+| Type_name   | total_reservations |
++-------------+--------------------+
+| Airbus-A320 |                  5 |
++-------------+--------------------+
+1 row in set (0.011 sec)
+
+MariaDB [airline]>
+
+--- END FILE: Untitled.txt ---
+
+
+--- START FILE: update_cell.php ---
+
+<?php
+include 'db.php';
+
+if (!isset($_POST['table'], $_POST['column'], $_POST['newValue'], $_POST['pkCol'], $_POST['pkVal'])) {
+    echo "missing parameters";
+    exit;
+}
+
+$table = $_POST['table'];
+$column = $_POST['column'];
+$newValue = $_POST['newValue'];
+$pkCol = $_POST['pkCol'];
+$pkVal = $_POST['pkVal'];
+
+// Escape identifiers safely
+$table = preg_replace('/[^a-zA-Z0-9_]/', '', $table);
+$column = preg_replace('/[^a-zA-Z0-9_]/', '', $column);
+$pkCol = preg_replace('/[^a-zA-Z0-9_]/', '', $pkCol);
+
+// Prepare dynamic update query safely
+$stmt = $conn->prepare("UPDATE `$table` SET `$column` = ? WHERE `$pkCol` = ?");
+if(!$stmt){
+    echo "prepare error: " . $conn->error;
+    exit;
+}
+$stmt->bind_param("ss", $newValue, $pkVal);
+
+if ($stmt->execute()) {
+    echo "success";
+} else {
+    echo "error: " . $conn->error;
+}
+$stmt->close();
+?>
+
+
+--- END FILE: update_cell.php ---
+
+
+--- START FILE: verify_payment.php ---
+
+<?php
+include 'db.php';
+session_start();
+
+if ($_SERVER["REQUEST_METHOD"] === "POST") {
+  $flight = $_POST['flight_number'];
+  $amount = $_POST['amount'];
+  $email = $_SESSION['email'] ?? $_SESSION['user'] ?? 'guest@example.com';
+
+  // Simulate random success/failure
+  $paymentSuccess = rand(1, 100) > 10; // 90% success chance
+
+  echo "<!DOCTYPE html>
+  <html lang='en'>
+  <head>
+    <meta charset='UTF-8'>
+    <script src='https://cdn.jsdelivr.net/npm/sweetalert2@11'></script>
+  </head>
+  <body>";
+
+  if ($paymentSuccess) {
+      // ✅ Update DB
+      $stmt = $conn->prepare("UPDATE reservation SET payment_status = 'Paid' WHERE Flight_number = ? AND Email = ?");
+      $stmt->bind_param('ss', $flight, $email);
+      $stmt->execute();
+
+      echo "<script>
+        Swal.fire({
+          icon: 'success',
+          title: 'Payment Successful!',
+          text: 'You paid ₹$amount for Flight $flight.',
+          confirmButtonText: 'View Reservations'
+        }).then(() => window.location.href = 'view_reservations.php');
+      </script>";
+  } else {
+      // ❌ Payment failed
+      $stmt = $conn->prepare("UPDATE reservation SET payment_status = 'Failed' WHERE Flight_number = ? AND Email = ?");
+      $stmt->bind_param('ss', $flight, $email);
+      $stmt->execute();
+
+      echo "<script>
+        Swal.fire({
+          icon: 'error',
+          title: 'Payment Failed!',
+          text: 'Please try again later.',
+          confirmButtonText: 'Retry Payment'
+        }).then(() => window.location.href = 'payment.php?flight_number=$flight');
+      </script>";
+  }
+
+  echo "</body></html>";
+}
+?>
+
+
+--- END FILE: verify_payment.php ---
+
+
+--- START FILE: view_reservations.php ---
+
+<?php
+include 'header.php';
+include 'db.php';
+
+// ✅ Ensure login
+if (!isset($_SESSION['user'])) {
+    header("Location: login.php");
+    exit();
+}
+
+$result = $conn->query("SELECT * FROM Reservation");
+?>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>📋 View Reservations</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+  <style>
+    /* 🌈 Animated Sky Background */
+    @keyframes skyMove {
+      0% { background: linear-gradient(to bottom, #a1c4fd, #c2e9fb); }
+      50% { background: linear-gradient(to bottom, #89f7fe, #66a6ff); }
+      100% { background: linear-gradient(to bottom, #a1c4fd, #c2e9fb); }
+    }
+
+    body {
+      margin: 0;
+      height: 100vh;
+      overflow-x: hidden;
+      animation: skyMove 40s ease-in-out infinite;
+      background-size: cover;
+      font-family: 'Poppins', sans-serif;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      position: relative;
+      flex-direction: column;
+    }
+
+    /* ☁️ Cloud Layers */
+    .cloud-layer {
+      position: absolute;
+      width: 150%;
+      height: 100%;
+      top: 0;
+      left: -25%;
+      background: url('images/cloud.png') repeat-x;
+      background-size: contain;
+      opacity: 0.4;
+      animation: drift 120s linear infinite;
+    }
+
+    .cloud-layer:nth-child(1) { opacity: 0.5; top: 10%; animation-duration: 100s; }
+    .cloud-layer:nth-child(2) { opacity: 0.35; top: 30%; animation-duration: 140s; }
+    .cloud-layer:nth-child(3) { opacity: 0.25; top: 60%; animation-duration: 180s; }
+
+    @keyframes drift {
+      from { background-position-x: 0; }
+      to { background-position-x: 10000px; }
+    }
+
+    /* ✈️ Airplane inside the clouds */
+    .plane {
+      position: absolute;
+      width: 3500px;
+      top: 400%;
+      left: 500%;
+      transform: translate(-50%, -50%) rotate(-3deg);
+      opacity: 0.8;
+      animation: floatPlane 100s ease-in-out infinite;
+      z-index: 0;
+    }
+
+    @keyframes floatPlane {
+      10%, 100% { transform: translate(50%, 50%) rotate(-3deg); }
+      50% { transform: translate(-50%, -55%) rotate(3deg); }
+    }
+
+    /* 💎 Glass Card for Table */
+    .glass-panel {
+      position: relative;
+      z-index: 5;
+      width: 90%;
+      max-width: 1000px;
+      background: rgba(255, 255, 255, 0.18);
+      backdrop-filter: blur(15px);
+      border-radius: 20px;
+      padding: 25px;
+      box-shadow: 0 8px 32px rgba(31, 38, 135, 0.37);
+      color: #0d47a1;
+      overflow: auto;
+      animation: fadeIn 1.5s ease;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(40px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    h2 {
+      text-align: center;
+      color: #0d47a1;
+      margin-bottom: 25px;
+      font-weight: 600;
+    }
+
+    table {
+      background: rgba(255, 255, 255, 0.5);
+      border-radius: 10px;
+    }
+
+    th {
+      background: rgba(13, 110, 253, 0.8);
+      color: white;
+      text-align: center;
+    }
+
+    td {
+      text-align: center;
+      background: rgba(255, 255, 255, 0.7);
+    }
+
+    .btn-danger {
+      background: linear-gradient(90deg, #ff6a6a, #c0392b);
+      border: none;
+    }
+
+    .btn-danger:hover {
+      background: linear-gradient(90deg, #c0392b, #ff6a6a);
+      transform: scale(1.05);
+    }
+
+    .btn-primary {
+      background: linear-gradient(90deg, #43cea2, #185a9d);
+      border: none;
+      font-weight: 600;
+    }
+
+    .btn-primary:hover {
+      transform: scale(1.05);
+      background: linear-gradient(90deg, #185a9d, #43cea2);
+    }
+
+  </style>
+</head>
+<body>
+
+  <!-- ☁️ Background Layers -->
+  <div class="cloud-layer"></div>
+  <div class="cloud-layer"></div>
+  <div class="cloud-layer"></div>
+
+  <!-- ✈️ Plane inside the clouds -->
+  <img src="images/airplane.png" alt="plane" class="plane">
+
+  <!-- 💎 Glass Panel for Reservations -->
+  <div class="glass-panel container mt-5 p-4">
+    <h2>📋 Current Reservations</h2>
+
+    <?php if (isset($_GET['status']) && $_GET['status'] == 'deleted'): ?>
+      <div class="alert alert-success">✅ Reservation cancelled successfully!</div>
+    <?php elseif (isset($_GET['status']) && $_GET['status'] == 'error'): ?>
+      <div class="alert alert-danger">❌ Cancellation failed. Please try again.</div>
+    <?php endif; ?>
+
+    <div class="table-responsive">
+      <table class="table table-bordered table-striped">
+        <thead>
+          <tr>
+            <th>Flight</th>
+            <th>Leg</th>
+            <th>Date</th>
+            <th>Airplane</th>
+            <th>Seat</th>
+            <th>Name</th>
+            <th>Phone</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          <?php
+          if ($result->num_rows > 0) {
+              while ($row = $result->fetch_assoc()) {
+                  echo "<tr>
+                      <td>{$row['Flight_number']}</td>
+                      <td>{$row['Leg_no']}</td>
+                      <td>{$row['Date']}</td>
+                      <td>{$row['Airplane_id']}</td>
+                      <td>{$row['Seat_no']}</td>
+                      <td>{$row['Customer_name']}</td>
+                      <td>{$row['Cphone']}</td>
+                      <td>
+                          <form method='POST' action='cancel_reservation.php'>
+                              <input type='hidden' name='flight_number' value='{$row['Flight_number']}'>
+                              <input type='hidden' name='leg_no' value='{$row['Leg_no']}'>
+                              <input type='hidden' name='date' value='{$row['Date']}'>
+                              <input type='hidden' name='seat_no' value='{$row['Seat_no']}'>
+                              <button type='submit' class='btn btn-danger btn-sm'>Cancel</button>
+                          </form>
+                      </td>
+                  </tr>";
+              }
+          } else {
+              echo "<tr><td colspan='8'>No reservations found.</td></tr>";
+          }
+          ?>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="text-center mt-4">
+      <a href="make_reservation.php" class="btn btn-primary px-4">➕ Make New Reservation</a>
+    </div>
+  </div>
+
+</body>
+</html>
+
+
+--- END FILE: view_reservations.php ---
+
+

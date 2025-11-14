@@ -1,0 +1,95 @@
+
+Setting environment for using XAMPP for Windows.
+ganes_kxvl8b7@MAHESH c:\xampp
+# mysql -u root
+Welcome to the MariaDB monitor.  Commands end with ; or \g.
+Your MariaDB connection id is 10
+Server version: 10.4.32-MariaDB mariadb.org binary distribution
+
+Copyright (c) 2000, 2018, Oracle, MariaDB Corporation Ab and others.
+
+Type 'help;' or '\h' for help. Type '\c' to clear the current input statement.
+
+MariaDB [(none)]> show databases;
++--------------------+
+| Database           |
++--------------------+
+| airline            |
+| airline_project    |
+| information_schema |
+| library_db         |
+| movie_db           |
+| mysql              |
+| performance_schema |
+| phpmyadmin         |
+| test               |
++--------------------+
+9 rows in set (0.056 sec)
+
+MariaDB [(none)]> use airline;
+Database changed
+MariaDB [airline]> show tables;
++-------------------+
+| Tables_in_airline |
++-------------------+
+| airplane          |
+| airplane_type     |
+| airport           |
+| can_land          |
+| fare              |
+| flight            |
+| flight_leg        |
+| leg_instance      |
+| reservation       |
+| seat              |
++-------------------+
+10 rows in set (0.001 sec)
+
+MariaDB [airline]> SELECT Seat_no, COUNT(*) AS total_bookings
+    -> FROM Reservation
+    -> GROUP BY Seat_no
+    -> ORDER BY total_bookings DESC
+    -> LIMIT 1;
++---------+----------------+
+| Seat_no | total_bookings |
++---------+----------------+
+| 14C     |              3 |
++---------+----------------+
+1 row in set (0.001 sec)
+
+MariaDB [airline]> SELECT Flight_number, Date, COUNT(*) AS total_reservations
+    -> FROM Reservation
+    -> GROUP BY Flight_number, Date
+    -> HAVING COUNT(*) > 1;
+Empty set (0.002 sec)
+
+MariaDB [airline]> SELECT Customer_name, Seat_no, COUNT(DISTINCT Flight_number) AS flights_with_same_seat
+    -> FROM Reservation
+    -> GROUP BY Customer_name, Seat_no
+    -> HAVING COUNT(DISTINCT Flight_number) > 1;
++---------------+---------+------------------------+
+| Customer_name | Seat_no | flights_with_same_seat |
++---------------+---------+------------------------+
+| MAHES         | 14C     |                      3 |
++---------------+---------+------------------------+
+1 row in set (0.001 sec)
+
+MariaDB [airline]> SELECT Flight_number, Leg_no, Date, Seat_no, Customer_name, COUNT(*) AS duplicates
+    -> FROM Reservation
+    -> GROUP BY Flight_number, Leg_no, Date, Seat_no, Customer_name
+    -> HAVING COUNT(*) > 1;
+Empty set (0.001 sec)
+
+MariaDB [airline]> SELECT A.Type_name, COUNT(*) AS total_reservations
+    -> FROM Reservation R
+    -> JOIN Airplane A ON R.Airplane_id = A.Airplane_id
+    -> GROUP BY A.Type_name
+    -> ORDER BY total_reservations DESC;
++-------------+--------------------+
+| Type_name   | total_reservations |
++-------------+--------------------+
+| Airbus-A320 |                  5 |
++-------------+--------------------+
+1 row in set (0.011 sec)
+
+MariaDB [airline]>
